@@ -7,10 +7,10 @@ class NodeColor(enum.Enum):
 
 
 class Node:
-    def __init__(self, key, value, red=True, parent=None, left=None, right=None):
+    def __init__(self, key, value, color=NodeColor.RED, parent=None, left=None, right=None):
         self.key = key
         self.value = value
-        self.red = red
+        self.color = color
         self.parent = parent
         self.left = left
         self.right = right

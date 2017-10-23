@@ -86,6 +86,7 @@ class Tree:
             else:
                 self.insert_case4(n)
 
+    # noinspection PyMethodMayBeStatic
     def insert_case1(self, n):
         n.color = NodeColor.BLACK
 
