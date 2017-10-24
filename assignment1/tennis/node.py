@@ -7,7 +7,7 @@ class NodeColor(enum.Enum):
 
 
 class Node:
-    def __init__(self, key, value, color=NodeColor.RED, parent=None, left=None, right=None):
+    def __init__(self, key=None, value=None, color=NodeColor.RED, parent=None, left=None, right=None):
         self.key = key
         self.value = value
         self.color = color
@@ -39,3 +39,29 @@ class Node:
         if grandparent is None:
             return None
         return parent.get_sibling()
+
+    def replace_parent(self, new_node=None):
+        if self.parent is not None:
+            if self == self.parent.left:
+                self.parent.left = new_node
+            elif self == self.parent.right:
+                self.parent.right = new_node
+        if new_node is not None:
+            new_node.parent = self.parent
+
+    def find(self, key):
+        node = self
+        while node is not None:
+            if key == node.key:
+                return node
+            elif key < node.key:
+                node = node.left
+            else:
+                node = node.right
+        return None
+
+    def find_min(self):
+        node = self
+        while node.left is not None:
+            node = node.left
+        return node
