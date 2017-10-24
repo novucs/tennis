@@ -119,11 +119,6 @@ class Tree:
         elif grandparent.right and node is grandparent.right.left:
             self.rotate_right(parent)
             node = node.right
-        self.insert_case4step2(node)
-
-    def insert_case4step2(self, node):
-        parent = node.get_parent()
-        grandparent = node.get_grandparent()
 
         if node is parent.left:
             self.rotate_right(grandparent)
