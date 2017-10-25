@@ -175,13 +175,29 @@ class Tree:
         parent.color = NodeColor.BLACK
         grandparent.color = NodeColor.RED
 
-    def __find(self, key):
+    def __find_node(self, key):
         """Finds the mapped node of this key in the tree.
 
         :param key: The key of the node to find.
         :return: The mapped node if found, otherwise None.
         """
         return self._root.find(key)
+
+    def find(self, key):
+        """Finds the value for a key stored in the tree.
+
+        Searches the tree for a node with a matching key, then provides the
+        value of the matched node.
+
+        :param key: The key to search for.
+        :return: The found node's value if found, otherwise None.
+        """
+        node = self.__find_node(key)
+
+        if node:
+            return node.value
+
+        return None
 
     def delete(self, key):
         """Deletes the node with the provided key.
@@ -197,7 +213,7 @@ class Tree:
         if key is None:
             raise ValueError("Keys are not allowed to be of type None")
 
-        node = self.__find(key)
+        node = self.__find_node(key)
 
         if not node:
             return False

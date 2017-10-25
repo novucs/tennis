@@ -7,7 +7,7 @@ if __name__ == '__main__':
     numbers2 = {}
 
     for i in range(0, len(numbers)):
-        tree.insert(numbers[i])
+        tree.insert(numbers[i], numbers[i] * 2)
         numbers2[numbers[i]] = 1
 
     for i in range(5, len(numbers)):
@@ -15,11 +15,12 @@ if __name__ == '__main__':
         numbers2[numbers[i]] = 0
 
     for i in range(3, 9):
-        tree.insert(numbers[i])
+        tree.insert(numbers[i], numbers[i] * 2)
         numbers2[numbers[i]] = 1
 
     for i in range(0, 2):
         tree.delete(numbers[i])
         numbers2[numbers[i]] = 0
 
+    print(tree.find(10))
     print(tree)
