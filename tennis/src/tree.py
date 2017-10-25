@@ -190,11 +190,15 @@ class Tree:
         """Finds the value for a key stored in the tree.
 
         Searches the tree for a node with a matching key, then provides the
-        value of the matched node.
+        value of the matched node. NoneType keys are not supported.
 
         :param key: The key to search for.
         :return: The found node's value if found, otherwise None.
         """
+
+        if key is None:
+            raise ValueError("Keys are not allowed to be of type None")
+
         node = self.__find_node(key)
 
         if node:
