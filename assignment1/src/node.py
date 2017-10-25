@@ -7,7 +7,13 @@ class NodeColor(enum.Enum):
 
 
 class Node:
-    def __init__(self, key=None, value=None, color=NodeColor.RED, parent=None, left=None, right=None):
+    def __init__(self,
+                 key=None,
+                 value=None,
+                 color=NodeColor.RED,
+                 parent=None,
+                 left=None,
+                 right=None):
         self.key = key
         self.value = value
         self.color = color
@@ -15,17 +21,14 @@ class Node:
         self.left = left
         self.right = right
 
-    def get_parent(self):
-        return self.parent
-
     def get_grandparent(self):
-        parent = self.get_parent()
+        parent = self.parent
         if parent is None:
             return None
-        return parent.get_parent()
+        return parent.parent
 
     def get_sibling(self):
-        parent = self.get_parent()
+        parent = self.parent
         if parent is None:
             return None
         elif self is parent.left:
@@ -34,7 +37,7 @@ class Node:
             return parent.left
 
     def get_uncle(self):
-        parent = self.get_parent()
+        parent = self.parent
         grandparent = self.get_grandparent()
         if grandparent is None:
             return None
