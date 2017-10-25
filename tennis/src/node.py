@@ -1,7 +1,7 @@
-import enum
+from enum import Enum
 
 
-class NodeColor(enum.Enum):
+class NodeColor(Enum):
     BLACK = 0
     RED = 1
 
