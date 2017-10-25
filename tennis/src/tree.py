@@ -3,7 +3,7 @@ from node import NodeColor
 
 
 class Tree:
-    """A red-black tree implementation.
+    """A red-black order statistic tree implementation.
 
     Attributes:
         _root: The root node of this tree.
@@ -29,14 +29,16 @@ class Tree:
         """
 
         pivot = root.right
-        root.right = pivot.left
         pivot_left_size = 0
 
-        if pivot.left:
-            pivot.left.parent = root
-            pivot_left_size = pivot.left.size
+        if pivot:
+            root.right = pivot.left
 
-        pivot.parent = root.parent
+            if pivot.left:
+                pivot.left.parent = root
+                pivot_left_size = pivot.left.size
+
+            pivot.parent = root.parent
 
         if root.parent is None:
             self._root = pivot
@@ -45,13 +47,13 @@ class Tree:
         else:
             root.parent.right = pivot
 
-        pivot.left = root
-        root.parent = pivot
+        if pivot:
+            pivot.left = root
+            root.size -= pivot.size
+            pivot.size += root.size
 
-        # Fix the node sizes.
-        root.size -= pivot.size
-        pivot.size += root.size
         root.size += pivot_left_size
+        root.parent = pivot
 
     def __rotate_right(self, root: Node):
         """Performs a right rotation.
@@ -65,14 +67,16 @@ class Tree:
         """
 
         pivot = root.left
-        root.left = pivot.right
         pivot_right_size = 0
 
-        if pivot.right:
-            pivot.right.parent = root
-            pivot_right_size = pivot.right.size
+        if pivot:
+            root.left = pivot.right
 
-        pivot.parent = root.parent
+            if pivot.right:
+                pivot.right.parent = root
+                pivot_right_size = pivot.right.size
+
+            pivot.parent = root.parent
 
         if root.parent is None:
             self._root = pivot
@@ -81,13 +85,13 @@ class Tree:
         else:
             root.parent.right = pivot
 
-        pivot.right = root
-        root.parent = pivot
+        if pivot:
+            pivot.right = root
+            root.size -= pivot.size
+            pivot.size += root.size
 
-        # Fix the node sizes.
-        root.size -= pivot.size
-        pivot.size += root.size
         root.size += pivot_right_size
+        root.parent = pivot
 
     def insert(self, key, value=None):
         """Inserts a new node into the tree.
@@ -190,6 +194,9 @@ class Tree:
             self.__rotate_right(parent)
             node = node.right
 
+        parent = node.parent
+        grandparent = node.get_grandparent()
+
         if node is parent.left:
             self.__rotate_right(grandparent)
         else:
@@ -226,6 +233,50 @@ class Tree:
 
         return None
 
+    def select(self, index):
+        """Finds the value of the node at the specified index.
+
+        :param index: The position in this tree.
+        :return: The node's value if found, otherwise None.
+        """
+
+        if index < 0 or index >= self._size:
+            raise ValueError("Index out of bounds")
+
+        node = self._root
+
+        while node:
+            size = node.left.size if node.left else 0
+
+            if index == size:
+                return node.value
+
+            if index < size:
+                node = node.left
+            else:
+                node = node.right
+                index -= size + 1
+
+    def rank(self, key):
+        """Finds the index of
+
+        :param key:
+        :return:
+        """
+        node = self.__find_node(key)
+
+        if not node:
+            return None
+
+        index = node.left.size if node.left else 0
+
+        while node.parent:
+            if node.parent.left is not node:
+                index += node.parent.left.size + 1 if node.parent.left else 1
+            node = node.parent
+
+        return index
+
     def delete(self, key):
         """Deletes the node with the provided key.
 
@@ -240,11 +291,15 @@ class Tree:
         if key is None:
             raise ValueError("Keys are not allowed to be of type None")
 
+        if not self._root:
+            return False
+
         node = self.__find_node(key)
 
         if not node:
             return False
 
+        self._size -= 1
         temp = node.parent
 
         while temp:
@@ -252,7 +307,6 @@ class Tree:
             temp = temp.parent
 
         self.__delete_node(node)
-        self._size -= 1
 
         return True
 
@@ -266,7 +320,13 @@ class Tree:
         """
 
         if node.left and node.right:
-            successor = node.right.find_min()
+            # Find the successor node and replace current.
+            node.size -= 1
+            successor = node.right
+            while successor.left:
+                successor.size -= 1
+                successor = successor.left
+
             node.key = successor.key
             node.value = successor.value
             self.__delete_node(successor)
@@ -285,6 +345,8 @@ class Tree:
 
         if node.color == NodeColor.BLACK:
             if child.color == NodeColor.RED:
+                if child.parent is None:
+                    self._root = child
                 child.color = NodeColor.BLACK
             else:
                 self.__delete_case1(child)
@@ -322,8 +384,8 @@ class Tree:
         if (sibling and
                 (node.parent.color == NodeColor.BLACK) and
                 (sibling.color == NodeColor.BLACK) and
-                (not sibling.left or sibling.left.color == NodeColor.BLACK) and
-                (not sibling.right or sibling.right.color == NodeColor.BLACK)):
+                (sibling.left and sibling.left.color == NodeColor.BLACK) and
+                (sibling.right and sibling.right.color == NodeColor.BLACK)):
             sibling.color = NodeColor.RED
             self.__delete_case1(node.parent)
         else:
@@ -335,8 +397,8 @@ class Tree:
         if (sibling and
                 (node.parent.color == NodeColor.RED) and
                 (sibling.color == NodeColor.BLACK) and
-                (not sibling.left or sibling.left.color == NodeColor.BLACK) and
-                (not sibling.right or sibling.right.color == NodeColor.BLACK)):
+                (sibling.left and sibling.left.color == NodeColor.BLACK) and
+                (sibling.right and sibling.right.color == NodeColor.BLACK)):
             sibling.color = NodeColor.RED
             node.parent.color = NodeColor.BLACK
         else:
@@ -347,13 +409,13 @@ class Tree:
 
         if sibling and sibling.color == NodeColor.BLACK:
             if ((node is node.parent.left) and
-                    (not sibling.right or sibling.right.color == NodeColor.BLACK) and
+                    (sibling.right and sibling.right.color == NodeColor.BLACK) and
                     (sibling.left and sibling.left.color == NodeColor.RED)):
                 sibling.color = NodeColor.RED
                 sibling.left.color = NodeColor.BLACK
                 self.__rotate_right(sibling)
             elif ((node is node.parent.left) and
-                    (not sibling.left or sibling.left.color == NodeColor.BLACK) and
+                    (sibling.left and sibling.left.color == NodeColor.BLACK) and
                     (sibling.right and sibling.right.color == NodeColor.RED)):
                 sibling.color = NodeColor.RED
                 sibling.right.color = NodeColor.BLACK
@@ -364,18 +426,18 @@ class Tree:
     def __delete_case6(self, node: Node):
         sibling = node.get_sibling()
 
+        node.parent.color = NodeColor.BLACK
+
         if sibling:
             sibling.color = node.parent.color
 
-        node.parent.color = NodeColor.BLACK
+            if node is node.parent.left:
+                if sibling.right:
+                    sibling.right.color = NodeColor.BLACK
 
-        if node is node.parent.left:
-            if sibling.right:
-                sibling.right.color = NodeColor.BLACK
+                self.__rotate_left(node.parent)
+            else:
+                if sibling.left:
+                    sibling.left.color = NodeColor.BLACK
 
-            self.__rotate_left(node.parent)
-        else:
-            if sibling.left:
-                sibling.left.color = NodeColor.BLACK
-
-            self.__rotate_right(node.parent)
+                self.__rotate_right(node.parent)
