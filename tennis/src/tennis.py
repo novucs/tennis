@@ -23,4 +23,5 @@ if __name__ == '__main__':
         numbers2[numbers[i]] = 0
 
     print(tree.find(10))
+    print(len(tree))
     print(tree)

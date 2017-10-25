@@ -14,6 +14,9 @@ class Tree:
         self._root = None
         self._size = 0
 
+    def __len__(self):
+        return self._size
+
     def __rotate_left(self, root: Node):
         """Performs a left rotation.
 
