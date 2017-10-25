@@ -30,9 +30,11 @@ class Tree:
 
         pivot = root.right
         root.right = pivot.left
+        pivot_left_size = 0
 
         if pivot.left:
             pivot.left.parent = root
+            pivot_left_size = pivot.left.size
 
         pivot.parent = root.parent
 
@@ -45,6 +47,11 @@ class Tree:
 
         pivot.left = root
         root.parent = pivot
+
+        # Fix the node sizes.
+        root.size -= pivot.size
+        pivot.size += root.size
+        root.size += pivot_left_size
 
     def __rotate_right(self, root: Node):
         """Performs a right rotation.
@@ -59,9 +66,11 @@ class Tree:
 
         pivot = root.left
         root.left = pivot.right
+        pivot_right_size = 0
 
         if pivot.right:
             pivot.right.parent = root
+            pivot_right_size = pivot.right.size
 
         pivot.parent = root.parent
 
@@ -74,6 +83,11 @@ class Tree:
 
         pivot.right = root
         root.parent = pivot
+
+        # Fix the node sizes.
+        root.size -= pivot.size
+        pivot.size += root.size
+        root.size += pivot_right_size
 
     def insert(self, key, value=None):
         """Inserts a new node into the tree.
@@ -115,6 +129,12 @@ class Tree:
                     break
 
         # Repair the tree.
+        temp = parent
+
+        while temp:
+            temp.size += 1
+            temp = temp.parent
+
         node.parent = parent
         self.__insert_repair(node)
 
@@ -224,6 +244,12 @@ class Tree:
 
         if not node:
             return False
+
+        temp = node.parent
+
+        while temp:
+            temp.size -= 1
+            temp = temp.parent
 
         self.__delete_node(node)
         self._size -= 1

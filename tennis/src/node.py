@@ -13,13 +13,15 @@ class Node:
                  color=NodeColor.RED,
                  parent=None,
                  left=None,
-                 right=None):
+                 right=None,
+                 size=1):
         self.key = key
         self.value = value
         self.color = color
         self.parent = parent
         self.left = left
         self.right = right
+        self.size = size
 
     def get_grandparent(self):
         parent = self.parent
