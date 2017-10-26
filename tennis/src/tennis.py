@@ -150,10 +150,9 @@ if __name__ == '__main__':
     players.delete(1, "bob")
     players.insert(2, "bob")
     players.insert(3, "garry")
-    leader_board_position = 1
-    score = len(players) - players.rank(leader_board_position) - 1
-    print("score: " + str(score))
-    print("players: " + str(players.select(score - 1)))
+    leader_board_position = 0
+
+    print("players at selected position: " + str(players.select(leader_board_position)))
     print("maintree rank of 1: " + str(tree.rank(6)))
     print(str(players))
 

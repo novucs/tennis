@@ -276,8 +276,10 @@ class Tree:
             if index < size:
                 node = node.left
             else:
+                index -= size + len(node.values)
                 node = node.right
-                index -= size + 1
+
+        return List()
 
     def rank(self, key):
         """Finds the index of the node mapped by the provided key.
