@@ -1,6 +1,40 @@
-from node import Node
-from node import BLACK
-from node import RED
+#!/usr/bin/env python
+
+"""
+
+An implementation of a red-black order statistic tree.
+
+Written for the UWE DADSA "Tennis" assignment.
+
+"""
+
+# Defines the red and black values for the tree nodes.
+BLACK = False
+RED = True
+
+
+class Node:
+    """A node for a red-black order statistic tree.
+
+    Attributes:
+        key: The key used for ranking this node in the tree.
+        value: The mapped value, used for attaching extra data per node.
+        color: The color of the node, used for sorting the tree. Can be either
+               RED or BLACK.
+        parent: The parent of this node.
+        left: The left child of this node.
+        right: The right child of this node.
+        size: The number of descendants this node holds, including itself.
+    """
+
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
+        self.color = RED
+        self.parent = None
+        self.left = None
+        self.right = None
+        self.size = 1
 
 
 class Tree:
@@ -17,6 +51,45 @@ class Tree:
 
     def __len__(self):
         return self._size
+
+    def __getitem__(self, key):
+        return self.find(key)
+
+    def __delitem__(self, key):
+        return self.delete(key)
+
+    def __setitem__(self, key, value):
+        return self.insert(key, value)
+
+    def __iter__(self):
+        node = self._root
+        while node.left:
+            node = node.left
+
+        while node:
+            yield (node.key, node.value)
+
+            if node.right:
+                node = node.right
+                while node.left:
+                    node = node.left
+                continue
+
+            parent = parent_of(node)
+            child = node
+
+            while parent and child == right_of(parent):
+                child = parent
+                parent = parent_of(parent)
+
+            node = parent
+
+    def __str__(self):
+        target = "["
+        for pair in self:
+            target += str(pair) + ", "
+        target = target[:-2] + "]"
+        return target
 
     def insert(self, key, value):
         """Inserts a new node into the tree.
@@ -77,7 +150,7 @@ class Tree:
 
         return True
 
-    def __insert_repair(self, node):
+    def __insert_repair(self, node: Node):
         """Performs red-black tree insertion repairs.
 
         :param node: The newly inserted node.
@@ -169,7 +242,15 @@ class Tree:
         if key is None:
             raise ValueError("Keys are not allowed to be of type None")
 
-        return self._root.find(key)
+        node = self._root
+        while node is not None:
+            if key < node.key:
+                node = node.left
+            elif key > node.key:
+                node = node.right
+            else:
+                return node
+        return None
 
     def select(self, index):
         """Finds the value of the node at the specified index.
@@ -467,11 +548,12 @@ def parent_of(node: Node):
 
 
 def grandparent_of(node: Node):
-    return node.get_grandparent() if node else None
+    return parent_of(parent_of(node))
 
 
 def set_color(node: Node, color: bool):
-    if node: node.color = color
+    if node:
+        node.color = color
 
 
 def left_of(node: Node):

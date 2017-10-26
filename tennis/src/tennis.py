@@ -1,8 +1,8 @@
-from tree import Tree
 from random import randint
 from random import seed
-from node import BLACK
 
+from ranked_tree import BLACK
+from ranked_tree import Tree
 
 seed(1)
 
@@ -96,4 +96,8 @@ if __name__ == '__main__':
             if (not tree._root and len(tree) != 0) or tree._root and tree._root.size != len(tree):
                 print("b " + str(i) + " " + str(j))
 
+    for key, value in tree:
+        print(str(key))
+
+    print(tree)
     print(len(tree))
