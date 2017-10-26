@@ -1,6 +1,8 @@
 from tree import Tree
 from random import randint
 from random import seed
+from node import BLACK
+
 
 seed(1)
 
@@ -42,32 +44,56 @@ def check_tree(node):
     }
 
 
+def get_height(node):
+    if not node:
+        return 0
+
+    left = get_height(node.left)
+    right = get_height(node.right)
+
+    if left == -1 or right == -1 or left != right:
+        return -1
+
+    return left + (1 if node.color == BLACK else 0)
+
+
+def is_valid(node):
+    return get_height(node) >= 0
+
+
 if __name__ == '__main__':
     tree = Tree()
     numbers = []
     numbers2 = set()
 
     for i in range(0, 10000):
-        numbers.append(randint(0, 100))
+        numbers.append(randint(0, 20))
 
-    for j in range(0, 100):
+    for j in range(0, 75):
         for i in rand_range():
             tree.insert(numbers[i], numbers[i] * 2)
             numbers2.add(numbers[i])
+
+            if not is_valid(tree._root):
+                print("broken1")
             check = check_tree(tree._root)
             if not check["valid"]:
-                print("broken")
+                print("broken2")
             if (not tree._root and len(tree) != 0) or tree._root and tree._root.size != len(tree):
                 print("a " + str(i) + " " + str(j))
 
         for i in rand_range():
             tree.delete(numbers[i])
-            check = check_tree(tree._root)
-            if not check["valid"]:
-                print("broken")
-            if (not tree._root and len(tree) != 0) or tree._root and tree._root.size != len(tree):
-                print("b " + str(i) + " " + str(j))
+
             if numbers2.__contains__(numbers[i]):
                 numbers2.remove(numbers[i])
+
+            if not is_valid(tree._root):
+                print("broken3")
+            check = check_tree(tree._root)
+            if not check["valid"]:
+                print("broken4")
+            if (not tree._root and len(tree) != 0) or tree._root and tree._root.size != len(tree):
+                print("b " + str(i) + " " + str(j))
 
     print(len(tree))

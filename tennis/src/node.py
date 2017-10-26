@@ -1,16 +1,12 @@
-from enum import Enum
-
-
-class NodeColor(Enum):
-    BLACK = 0
-    RED = 1
+BLACK = False
+RED = True
 
 
 class Node:
     def __init__(self,
                  key=None,
                  value=None,
-                 color=NodeColor.RED,
+                 color=RED,
                  parent=None,
                  left=None,
                  right=None,
