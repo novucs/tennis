@@ -85,6 +85,8 @@ class Tree:
             node = parent
 
     def __str__(self):
+        if self._size == 0:
+            return "[]"
         target = "["
         for pair in self:
             target += str(pair) + ", "

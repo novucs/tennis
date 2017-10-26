@@ -1,8 +1,8 @@
 from random import randint
 from random import seed
 
+from linked_list import List
 from ranked_tree import BLACK
-from ranked_tree import Tree
 
 seed(1)
 
@@ -61,45 +61,70 @@ def is_valid(node):
     return get_height(node) >= 0
 
 
+class Player:
+    def __init__(self, name, score):
+        self.name = name
+        self.score = score
+
+    def __eq__(self, other):
+        if other is None:
+            return False
+        return self.name == other.name
+
+
 if __name__ == '__main__':
-    tree = Tree()
-    numbers = []
-    numbers2 = set()
+    # tree = Tree()
+    # numbers = []
+    # numbers2 = set()
+    #
+    # for i in range(0, 10000):
+    #     numbers.append(randint(0, 20))
+    #
+    # for j in range(0, 75):
+    #     for i in rand_range():
+    #         num = numbers[i]
+    #         tree[num] = num * 2
+    #         numbers2.add(numbers[i])
+    #
+    #         if not is_valid(tree._root):
+    #             print("broken1")
+    #         check = check_tree(tree._root)
+    #         if not check["valid"]:
+    #             print("broken2")
+    #         if (not tree._root and len(tree) != 0) or tree._root and tree._root.size != len(tree):
+    #             print("a " + str(i) + " " + str(j))
+    #
+    #     for i in rand_range():
+    #         num = numbers[i]
+    #         tree[num] = None
+    #
+    #         if numbers2.__contains__(numbers[i]):
+    #             numbers2.remove(numbers[i])
+    #
+    #         if not is_valid(tree._root):
+    #             print("broken3")
+    #         check = check_tree(tree._root)
+    #         if not check["valid"]:
+    #             print("broken4")
+    #         if (not tree._root and len(tree) != 0) or tree._root and tree._root.size != len(tree):
+    #             print("b " + str(i) + " " + str(j))
+    #
+    # for key, value in tree:
+    #     print(str(key))
+    #
+    # print(tree)
+    # print(len(tree))
 
-    for i in range(0, 10000):
-        numbers.append(randint(0, 20))
+    player1 = Player("bob", 1)
+    player2 = Player("bob", 2)
 
-    for j in range(0, 75):
-        for i in rand_range():
-            num = numbers[i]
-            tree[num] = num * 2
-            numbers2.add(numbers[i])
+    print(str(player1 == player2))
 
-            if not is_valid(tree._root):
-                print("broken1")
-            check = check_tree(tree._root)
-            if not check["valid"]:
-                print("broken2")
-            if (not tree._root and len(tree) != 0) or tree._root and tree._root.size != len(tree):
-                print("a " + str(i) + " " + str(j))
+    numbers = List()
 
-        for i in rand_range():
-            num = numbers[i]
-            tree[num] = None
-
-            if numbers2.__contains__(numbers[i]):
-                numbers2.remove(numbers[i])
-
-            if not is_valid(tree._root):
-                print("broken3")
-            check = check_tree(tree._root)
-            if not check["valid"]:
-                print("broken4")
-            if (not tree._root and len(tree) != 0) or tree._root and tree._root.size != len(tree):
-                print("b " + str(i) + " " + str(j))
-
-    for key, value in tree:
-        print(str(key))
-
-    print(tree)
-    print(len(tree))
+    for i in range(0, 10):
+        numbers.append(i)
+    for i in range(0, 10):
+        numbers.delete(i)
+    print(numbers)
+    print(len(numbers))
