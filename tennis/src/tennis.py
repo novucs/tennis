@@ -71,7 +71,8 @@ if __name__ == '__main__':
 
     for j in range(0, 75):
         for i in rand_range():
-            tree.insert(numbers[i], numbers[i] * 2)
+            num = numbers[i]
+            tree[num] = num * 2
             numbers2.add(numbers[i])
 
             if not is_valid(tree._root):
@@ -83,7 +84,8 @@ if __name__ == '__main__':
                 print("a " + str(i) + " " + str(j))
 
         for i in rand_range():
-            tree.delete(numbers[i])
+            num = numbers[i]
+            tree[num] = None
 
             if numbers2.__contains__(numbers[i]):
                 numbers2.remove(numbers[i])

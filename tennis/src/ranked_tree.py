@@ -107,6 +107,11 @@ class Tree:
         if key is None:
             raise ValueError("Keys are not allowed to be of type None")
 
+        # Delete if setting no value.
+        if value is None:
+            self.delete(key)
+            return
+
         # If tree does not already contain a root, simply add one in.
         if self._root is None:
             self._root = Node(key, value)
