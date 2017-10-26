@@ -8,6 +8,8 @@ Written for the UWE DADSA "Tennis" assignment.
 
 """
 
+from linked_list import List
+
 # Defines the red and black values for the tree nodes.
 BLACK = False
 RED = True
@@ -27,9 +29,9 @@ class Node:
         size: The number of descendants this node holds, including itself.
     """
 
-    def __init__(self, key, value):
+    def __init__(self, key):
         self.key = key
-        self.value = value
+        self.values = List()
         self.color = RED
         self.parent = None
         self.left = None
@@ -55,8 +57,8 @@ class Tree:
     def __getitem__(self, key):
         return self.find(key)
 
-    def __delitem__(self, key):
-        return self.delete(key)
+    def __delitem__(self, key, value):
+        return self.delete(key, value)
 
     def __setitem__(self, key, value):
         return self.insert(key, value)
@@ -67,7 +69,8 @@ class Tree:
             node = node.left
 
         while node:
-            yield (node.key, node.value)
+            for element in node.values:
+                yield (node.key, element)
 
             if node.right:
                 node = node.right
@@ -106,28 +109,28 @@ class Tree:
         """
 
         # Disallow NoneType keys.
-        if key is None:
-            raise ValueError("Keys are not allowed to be of type None")
-
-        # Delete if setting no value.
-        if value is None:
-            self.delete(key)
-            return
+        if key is None or value is None:
+            raise ValueError("Keys and values are not allowed to be of type None")
 
         # If tree does not already contain a root, simply add one in.
         if self._root is None:
-            self._root = Node(key, value)
+            self._root = Node(key)
+            self._root.values.append(value)
             self._size = 1
             return True
 
         # Locate the parent and where the node should be placed.
-        node = Node(key, value)
+        node = Node(key)
         parent = self._root
+        self._size += 1
 
         while parent:
+            # Always increment the parents size.
+            parent.size += 1
+
             # Update node then return if same key already exists.
             if node.key == parent.key:
-                parent.value = node.value
+                parent.values.append(value)
                 return False
 
             # Otherwise keep searching for a free spot in the tree.
@@ -142,19 +145,12 @@ class Tree:
                     break
                 parent = parent.right
 
-        # Update the node with its new parent.
+        # Update the node with its new parent and value.
         node.parent = parent
+        node.values.append(value)
 
         # Fix the tree structure.
         self.__insert_repair(node)
-
-        # Increment the size globally and of all ancestors.
-        self._size += 1
-        temp = parent
-        while temp:
-            temp.size += 1
-            temp = temp.parent
-
         return True
 
     def __insert_repair(self, node: Node):
@@ -223,10 +219,10 @@ class Tree:
         self._root.color = BLACK
 
     def find(self, key):
-        """Finds the value for a key stored in the tree.
+        """Finds the values for a key stored in the tree.
 
         Searches the tree for a node with a matching key, then provides the
-        value of the matched node. NoneType keys are not supported.
+        values of the matched node. NoneType keys are not supported.
 
         :param key: The key to search for.
         :return: The found node's value if found, otherwise None.
@@ -235,7 +231,7 @@ class Tree:
         node = self.__find_node(key)
 
         if node:
-            return node.value
+            return node.values
 
         return None
 
@@ -260,10 +256,10 @@ class Tree:
         return None
 
     def select(self, index):
-        """Finds the value of the node at the specified index.
+        """Finds the values of the node at the specified index.
 
         :param index: The position in this tree.
-        :return: The node's value if found, otherwise None.
+        :return: The node's values if found, otherwise None.
         """
 
         if index < 0 or index >= self._size:
@@ -275,7 +271,7 @@ class Tree:
             size = node.left.size if node.left else 0
 
             if index == size:
-                return node.value
+                return node.values
 
             if index < size:
                 node = node.left
@@ -298,12 +294,14 @@ class Tree:
 
         while node.parent:
             if node.parent.left is not node:
-                index += node.parent.left.size + 1 if node.parent.left else 1
+                if node.parent.left:
+                    index += node.parent.left.size
+                index += len(node.parent.values)
             node = node.parent
 
         return index
 
-    def delete(self, key):
+    def delete(self, key, value):
         """Deletes the node with the provided key.
 
         Finds the node in this tree with the same key mapping and removes it.
@@ -311,6 +309,7 @@ class Tree:
         not supported.
 
         :param key: The key of the node to delete from this tree.
+        :param value: The value of the node to delete from this tree.
         :return: True if the node previously existed, otherwise False.
         """
 
@@ -329,6 +328,12 @@ class Tree:
             temp.size -= 1
             temp = temp.parent
 
+        node.values.delete(value)
+
+        if len(node.values) > 0:
+            node.size -= 1
+            return
+
         if node.left and node.right:
             # Find the successor to this node.
             # Decrement the size of all passed children.
@@ -339,9 +344,18 @@ class Tree:
                 successor.size -= 1
                 successor = successor.left
 
+            # If the successor was a shared node, re-correct the sizes of its
+            # new descendants.
+            if len(successor.values) > 1:
+                temp = node.right
+                correction = len(successor.values) - 1
+                while temp.left:
+                    temp.size -= correction
+                    temp = temp.left
+
             # Replace the current node with it's successor.
             node.key = successor.key
-            node.value = successor.value
+            node.values = successor.values
             node = successor
 
         # Find the replacement.

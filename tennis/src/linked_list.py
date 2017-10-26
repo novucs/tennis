@@ -69,6 +69,9 @@ class List:
             node = node.right
         return node
 
+    def find(self, item):
+        return self.__find_node(item).item
+
     def delete(self, item):
         node = self.__find_node(item)
 
