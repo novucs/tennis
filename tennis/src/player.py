@@ -7,7 +7,7 @@ class Player:
         self.score = score
 
     def __str__(self):
-        return "{" + self.name + ", " + str(self.score) + "}"
+        return "{name=" + self.name + ", score=" + str(self.score) + "}"
 
     def __eq__(self, other):
         if other is None:

@@ -22,9 +22,6 @@ class Node:
         else:
             return self.key == other
 
-    def __str__(self):
-        return "(" + str(self.key) + ", " + str(self.value) + ")"
-
 
 class HashTable:
     def __init__(self, initial_capacity=10):
@@ -56,8 +53,8 @@ class HashTable:
         if self._size == 0:
             return "[]"
         target = "["
-        for entry in self:
-            target += str(entry) + ", "
+        for key, value in self:
+            target += "(" + str(key) + ", " + str(value) + "), "
         target = target[:-2] + "]"
         return target
 
