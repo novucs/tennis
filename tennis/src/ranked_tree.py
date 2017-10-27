@@ -18,7 +18,7 @@ class Node:
 
     Attributes:
         key: The key used for ranking this node in the tree.
-        value: The mapped value, used for attaching extra data per node.
+        values: The mapped values, used for attaching extra data per node.
         color: The color of the node, used for sorting the tree. Can be either
                RED or BLACK.
         parent: The parent of this node.
