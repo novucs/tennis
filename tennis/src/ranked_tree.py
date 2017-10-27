@@ -2,9 +2,7 @@
 
 """
 
-An implementation of a red-black order statistic tree.
-
-Written for the UWE DADSA "Tennis" assignment.
+A red-black order statistic tree that supports multiple values per key.
 
 """
 

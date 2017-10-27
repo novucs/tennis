@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+
+"""
+
+A hash table with linked list buckets.
+
+"""
+
 import numpy as np
 
 from linked_list import List
