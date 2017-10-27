@@ -65,12 +65,13 @@ class List:
             return None
 
         node = self._first
-        while node.item != item:
+        while node and node.item != item:
             node = node.right
         return node
 
     def find(self, item):
-        return self.__find_node(item).item
+        node = self.__find_node(item)
+        return node.item if node else None
 
     def delete(self, item):
         node = self.__find_node(item)
@@ -106,6 +107,15 @@ class List:
         else:
             self._first = node
         self._last = node
+
+    def replace(self, item):
+        node = self.__find_node(item)
+
+        if node is None:
+            return False
+
+        node.item = item
+        return True
 
     def update(self, index, item):
         node = self.__select_node(index)
