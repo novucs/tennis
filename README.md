@@ -99,11 +99,11 @@ is to be expected of the input data. As this assignment is vague on the
 specifics on what to expect, it's probably best to use a general purpose
 sorting algorithm that has the best all-round statistics.
 
-Tim sort was the first general purpose algorithm that popped into my head. It
-is the main sorting algorithm used by Python and Java as it offers excellent
-benchmarks on sorting real world data. Tim sort achieves this by taking
-advantage of already sorted sections or "runs" of the provided data set. Though
-Tim sort is not the only algorithm that does this.
+Tim sort was the first general purpose sorting algorithm that popped into my
+head. It is the main sorting algorithm used by Python and Java as it offers
+excellent benchmarks on sorting real world data. Tim sort achieves this by
+taking advantage of already sorted sections or "runs" of the provided data set.
+Though Tim sort is not the only algorithm that does this.
 
 Block sort is a newer sorting algorithm that, like Tim sort, is a combination of
 merge sort and insertion sort and uses runs. Block sort is almost identical to
