@@ -117,6 +117,16 @@ class List:
             self._first = node
         self._last = node
 
+    def append_front(self, item):
+        self._size += 1
+        node = Node(item)
+        if self._first:
+            node.right = self._first
+            self._first.left = node
+        else:
+            self._last = node
+        self._first = node
+
     def replace(self, item):
         node = self.__find_node(item)
 
