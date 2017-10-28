@@ -2,7 +2,7 @@
 
 """
 
-Live statistics sort solution.
+Solution for streamed data.
 
 """
 
@@ -33,4 +33,4 @@ def accept_score(player_name, score):
 
 
 if __name__ == '__main__':
-    print("Solution - Live statistics")
+    print("Solution - Stream")
