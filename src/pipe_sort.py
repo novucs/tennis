@@ -43,6 +43,7 @@ class Sorter:
     def sort(self):
         # Collect the final run.
         self._runs.insert(len(self._run), self._run)
+        self._run = List()
 
         # Iteratively merge each of the runs, smallest first.
         while len(self._runs) > 1:
