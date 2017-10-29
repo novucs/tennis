@@ -50,21 +50,21 @@ class Sorter:
             new_runs = Tree()
             iterator = iter(self._runs)
 
-            run_a = self._next_run(iterator)
-            run_b = self._next_run(iterator)
+            run_a = next_run(iterator)
+            run_b = next_run(iterator)
 
             while run_a is not None and run_b is not None:
-                merged = self._merge(run_a, run_b)
+                merged = merge(run_a, run_b)
                 new_runs.insert(len(merged), merged)
-                run_a = self._next_run(iterator)
-                run_b = self._next_run(iterator)
+                run_a = next_run(iterator)
+                run_b = next_run(iterator)
 
             if run_a is not None:
                 new_runs.insert(len(run_a), run_a)
 
             self._runs = new_runs
 
-        sorted_run = self._next_run(iter(self._runs))
+        sorted_run = next_run(iter(self._runs))
 
         # Convert the run to an array if currently a linked list.
         if isinstance(sorted_run, List):
@@ -78,38 +78,38 @@ class Sorter:
         # Return the final sorted run.
         return sorted_run
 
-    @staticmethod
-    def _merge(run_a, run_b):
-        merged = np.empty(len(run_a) + len(run_b), dtype=object)
-        iterator_a = iter(run_a)
-        iterator_b = iter(run_b)
-        element_a = next(iterator_a, None)
-        element_b = next(iterator_b, None)
-        index = 0
 
-        while element_a is not None and element_b is not None:
-            if element_a > element_b:
-                merged[index] = element_b
-                element_b = next(iterator_b, None)
-            else:
-                merged[index] = element_a
-                element_a = next(iterator_a, None)
+def merge(run_a, run_b):
+    merged = np.empty(len(run_a) + len(run_b), dtype=object)
+    iterator_a = iter(run_a)
+    iterator_b = iter(run_b)
+    element_a = next(iterator_a, None)
+    element_b = next(iterator_b, None)
+    index = 0
 
-            index += 1
-
-        while element_a is not None:
-            merged[index] = element_a
-            element_a = next(iterator_a, None)
-            index += 1
-
-        while element_b is not None:
+    while element_a is not None and element_b is not None:
+        if element_a > element_b:
             merged[index] = element_b
             element_b = next(iterator_b, None)
-            index += 1
+        else:
+            merged[index] = element_a
+            element_a = next(iterator_a, None)
 
-        return merged
+        index += 1
 
-    @staticmethod
-    def _next_run(iterator):
-        run_tuple = next(iterator, None)
-        return run_tuple[1] if run_tuple else None
+    while element_a is not None:
+        merged[index] = element_a
+        element_a = next(iterator_a, None)
+        index += 1
+
+    while element_b is not None:
+        merged[index] = element_b
+        element_b = next(iterator_b, None)
+        index += 1
+
+    return merged
+
+
+def next_run(iterator):
+    run_tuple = next(iterator, None)
+    return run_tuple[1] if run_tuple else None

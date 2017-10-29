@@ -15,17 +15,20 @@ seed(1)
 
 if __name__ == '__main__':
     print("Solution - Static")
-    to_sort = []
-
-    for _ in range(0, 500):
-        to_sort.append(randint(0, 100))
-
     sorter = Sorter()
+    to_sort = []
+    target = []
 
-    # Consume the sample data.
-    for element in to_sort:
-        sorter.consume(element)
+    for _ in range(0, 10):
+        # Generate sample data.
+        for _ in range(0, 10):
+            to_sort.append(randint(0, 100))
+
+        # Consume the sample data.
+        for element in to_sort:
+            sorter.consume(element)
+
+        target = sorter.sort()
 
     # Finalize sort and print the results.
-    target = sorter.sort()
     print(str(target))
