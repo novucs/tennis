@@ -9,16 +9,23 @@ Solution for static data.
 from random import randint
 from random import seed
 
+from hash_table import HashTable
 from pipe_sort import Sorter
 
 seed(1)
+
+players_by_name = HashTable()
+
+
+def score_comparator(player_a, player_b):
+    return player_a.score - player_b.score
+
 
 if __name__ == '__main__':
     print("Solution - Static")
     sorter = Sorter()
     to_sort = []
     target = []
-
     for _ in range(0, 10):
         # Generate sample data.
         for _ in range(0, 10):
