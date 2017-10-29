@@ -6,6 +6,8 @@ A doubly-linked list.
 
 """
 
+import numpy as np
+
 
 class Node:
     """A node stored in the linked list.
@@ -212,3 +214,16 @@ class List:
         old_item = node.item
         node.item = item
         return old_item
+
+    def to_array(self):
+        """Converts this list to an array.
+
+        :return: The newly created array.
+        """
+        iterator = iter(self)
+        target_array = np.empty(self._size, dtype=object)
+
+        for i in range(0, self._size):
+            target_array[i] = next(iterator)
+
+        return target_array

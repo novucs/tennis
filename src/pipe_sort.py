@@ -127,12 +127,7 @@ class Sorter:
 
         # Convert the run to an array if currently a linked list.
         if isinstance(sorted_run, List):
-            iterator = iter(sorted_run)
-            length = len(sorted_run)
-            sorted_run = np.empty(length, dtype=object)
-
-            for i in range(0, length):
-                sorted_run[i] = next(iterator)
+            sorted_run = sorted_run.to_array()
 
         # Return the final sorted run.
         return sorted_run
