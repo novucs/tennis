@@ -111,23 +111,44 @@ Tim sort when ran on real world data, but it provides one extra advantage over
 Tim sort, a space complexity of `O(1)`. For comparison, Tim sort has a space
 complexity of `O(n)`.
 
-#### Block sort
-- Space complexity: `O(1)`
-- Best case: `O(n)`
-- Average case: `O(n log n)`
-- Worst case: `O(n log n)`
+My original design was to use block sort. Though I've found while gradually
+loading player data from a file, instead of putting it into an array, it could
+be put into a better data structure that helps with the sorting process. Pipe
+sort is a sorting algorithm I designed which was inspired by Tim sort. It's
+similar to Tim sort in the way that it is able to detect runs, both forwards
+and backwards. Even if the entire data set supplied was in reverse, pipe sort
+should be able to sort it in `O(n)` time.
+
+Pipe sort differs from Tim sort in two ways. When feeding data into pipe sort,
+it not only finds runs in the data but it also groups these runs by their
+relative sizes using the specialised tree data structure specified in the
+stream solution. Note that this tree is indexed by the size of the runs, not
+the data itself. The other difference is, insertion sort is now no longer
+necessary as we it is more optimal to recursively merge sort all similar sized
+runs. We know all the data is sorted once there is only a single run remaining.
+
+#### Pipe sort
+- Space complexity: `O(n)`
+- Time complexities:
+  - Best: `O(n)`
+  - Average: `O(n log n)`
+  - Worst: `O(n log n)`
 
 #### Pseudo code
 ```
-load_tournament_results(tournament_file):
-    results = []
-    for line in file(tournament_file):
-        name, score = line.split(",")
-        player = Player(name, score)
-        results.append(player)
-    return results
-
-# Load a player profile array as tournament results.
-tournament_results = load_tournament_results("tournament 1.csv")
-block_sort(tournament_reuslts)
+tbd
 ```
+
+## Other notes
+- The library numpy was used in this project, not for ease of use but to
+  emulate a proper C-style array of immutable size.
+- I am aware that focusing on algorithms like this being optimal is futile in a
+  language like Python, and that creating these in a lower level language will
+  probably provide a performance gain. This assignment specified for them to be
+  written in this language. If the intention was to get us to create native
+  bindings, then I'd be happy to oblige.
+- There are already many great libraries out there for Python that have similar
+  behaviour to what I have written, and reinventing the wheel is usually
+  something that should be avoided in software development. I made the
+  exception here as I assume the assignment was designed to show an
+  understanding of common data structures and algorithms.

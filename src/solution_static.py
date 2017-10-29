@@ -28,6 +28,7 @@ if __name__ == '__main__':
         for element in to_sort:
             sorter.consume(element)
 
+        to_sort.clear()
         target = sorter.sort()
 
     # Finalize sort and print the results.
