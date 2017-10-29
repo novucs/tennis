@@ -7,6 +7,7 @@ Solution for static data.
 """
 
 import math
+import os.path
 
 import numpy as np
 
@@ -253,19 +254,54 @@ def tally_and_print(tournament, players, ranking_points):
             player.ranking_points += points * tournament.difficulty
 
 
+def get_file(name, default):
+    while True:
+        file_name = input("Please enter the path to the " + name + " file ( " + default + "): ")
+
+        if file_name == "":
+            return default
+        elif os.path.isfile(file_name):
+            return file_name
+        else:
+            print("The file you specified does not exist")
+
+
+def get_file_list(name):
+    print("Please enter a list of " + name + " files. Enter 'done' when finished.")
+    files = List()
+
+    while True:
+        file_name = input("Entry " + str(len(files) + 1) + ": ")
+
+        if file_name == "done":
+            break
+        elif os.path.isfile(file_name):
+            files.append(file_name)
+        else:
+            print("The file you specified does not exist")
+
+    return files
+
+
 def run():
     print("Solution - Static")
 
     # Load tournaments, players and ranking points.
-    tournaments = load_tournaments_file("../resources/tournaments.csv")
-    men_by_name = load_players_file("../resources/male_players.csv", len(tournaments))
-    women_by_name = load_players_file("../resources/female_players.csv", len(tournaments))
-    ranking_points = load_ranking_points_file("../resources/ranking_points.csv")
+    tournaments_file = get_file("tournaments", "../resources/tournaments.csv")
+    male_players_file = get_file("male players", "../resources/male_players.csv")
+    female_players_file = get_file("female players", "../resources/female_players.csv")
+    ranking_points_file = get_file("ranking points", "../resources/ranking_points.csv")
+
+    tournaments = load_tournaments_file(tournaments_file)
+    men_by_name = load_players_file(male_players_file, len(tournaments))
+    women_by_name = load_players_file(female_players_file, len(tournaments))
+    ranking_points = load_ranking_points_file(ranking_points_file)
 
     for tournament_name, tournament in tournaments:
         # Collect all statistics for each round in the tournament.
-        male_round_file_names = ["../resources/round1_men.csv"]
-        female_round_file_names = ["../resources/round1_ladies.csv"]
+        print("Now beginning processing for tournament " + tournament_name)
+        male_round_file_names = get_file_list(tournament_name + " male round")
+        female_round_file_names = get_file_list(tournament_name + " female round")
 
         for file_name in male_round_file_names:
             load_round_file(file_name, tournament_name, men_by_name, MALE)
