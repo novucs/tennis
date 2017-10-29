@@ -12,18 +12,38 @@ from linked_list import List
 
 
 class Node:
+    """A node or entry in the hash table.
+
+    Attributes:
+        key: The key to be used as an index in the table.
+        value: The value, an extra object to store anything relating to the key
+               that will not be used for indexing.
+    """
+
     def __init__(self, key, value):
         self.key = key
         self.value = value
 
     def __eq__(self, other):
-        if isinstance(other, Node):
+        if other is None:
+            return False
+        elif isinstance(other, Node):
             return self.key == other.key
         else:
             return self.key == other
 
+    def __hash__(self):
+        return hash(self.key)
+
 
 class HashTable:
+    """A hash table with linked list buckets.
+
+    Attributes:
+        _table: The table, an array of linked lists.
+        _size: The number of elements stored in this hash table.
+    """
+
     def __init__(self, initial_capacity=10):
         self._table = np.empty(initial_capacity, dtype=object)
 
@@ -59,39 +79,68 @@ class HashTable:
         return target
 
     def find(self, key):
+        """Finds the value associated with the provided key.
+
+        :param key: The key to search with.
+        :return: The associated value if found, otherwise None.
+        """
         if self._size == 0:
             return None
 
-        code = id(key) % self._table.size
-        return self._table[code].find(key)
+        code = hash(key) % self._table.size
+        node = self._table[code].find(key)
+
+        if node is None:
+            return None
+
+        return node.value
 
     def insert(self, key, value):
+        """Inserts a new key and value into the hash table.
+
+        :param key: The key to index with.
+        :param value: The value to store under the provided key.
+        :return: The old value associated with this key if previously existed,
+                 otherwise None.
+        """
         self.__ensure_capacity(self._size + 1)
 
         node = Node(key, value)
-        code = id(key) % self._table.size
-        replaced = self._table[code].replace(node)
+        code = hash(key) % self._table.size
+        old_node = self._table[code].replace(node)
 
-        if replaced:
-            return False
+        if old_node is not None:
+            return old_node.value
 
         self._table[code].append(node)
         self._size += 1
-        return True
+        return None
 
     def delete(self, key):
+        """Deletes the entry associated with the provided key.
+
+        :param key: The key of the entry to delete.
+        :return: The old value if existed, otherwise None.
+        """
         if self._size == 0:
             return False
 
-        code = id(key) % self._table.size
+        code = hash(key) % self._table.size
+        old_node = self._table[code].delete(key)
 
-        if self._table[code].delete(key):
-            self._size -= 1
-            return True
+        if old_node is None:
+            return None
         else:
-            return False
+            self._size -= 1
+            return old_node.value
 
     def __ensure_capacity(self, min_capacity):
+        """Ensures the number of possible positions in the hash table is at
+        least as much as the number of nodes in the table.
+
+        :param min_capacity: The minimum capacity required of the table.
+        :return: None
+        """
         if self._table.size >= min_capacity:
             return
 

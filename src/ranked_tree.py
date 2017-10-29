@@ -63,23 +63,23 @@ class Tree:
 
     def __iter__(self):
         node = self._root
-        while node.left:
+        while node.left is not None:
             node = node.left
 
         while node:
             for element in node.values:
                 yield (node.key, element)
 
-            if node.right:
+            if node.right is not None:
                 node = node.right
-                while node.left:
+                while node.left is not None:
                     node = node.left
                 continue
 
             parent = parent_of(node)
             child = node
 
-            while parent and child == right_of(parent):
+            while parent is not None and child == right_of(parent):
                 child = parent
                 parent = parent_of(parent)
 
@@ -122,7 +122,7 @@ class Tree:
         parent = self._root
         self._size += 1
 
-        while parent:
+        while parent is not None:
             # Always increment the parents size.
             parent.size += 1
 
@@ -228,7 +228,7 @@ class Tree:
 
         node = self.__find_node(key)
 
-        if node:
+        if node is not None:
             return node.values
 
         return None
@@ -265,7 +265,7 @@ class Tree:
 
         node = self._root
 
-        while node:
+        while node is not None:
             size = node.left.size if node.left else 0
 
             if index == size:
@@ -292,9 +292,9 @@ class Tree:
 
         index = node.left.size if node.left else 0
 
-        while node.parent:
+        while node.parent is not None:
             if node.parent.left is not node:
-                if node.parent.left:
+                if node.parent.left is not None:
                     index += node.parent.left.size
                 index += len(node.parent.values)
             node = node.parent
@@ -324,7 +324,7 @@ class Tree:
         # Decrement the size globally and of all ancestors.
         self._size -= 1
         temp = node.parent
-        while temp:
+        while temp is not None:
             temp.size -= 1
             temp = temp.parent
 
@@ -334,13 +334,13 @@ class Tree:
             node.size -= 1
             return
 
-        if node.left and node.right:
+        if node.left is not None and node.right is not None:
             # Find the successor to this node.
             # Decrement the size of all passed children.
             node.size -= 1
             successor = node.right
 
-            while successor.left:
+            while successor.left is not None:
                 successor.size -= 1
                 successor = successor.left
 
@@ -349,7 +349,7 @@ class Tree:
             if len(successor.values) > 1:
                 temp = node.right
                 correction = len(successor.values) - 1
-                while temp.left:
+                while temp.left is not None:
                     temp.size -= correction
                     temp = temp.left
 
@@ -359,7 +359,7 @@ class Tree:
             node = successor
 
         # Find the replacement.
-        replacement = node.left if node.left else node.right
+        replacement = node.left if node.left is not None else node.right
 
         if replacement:
             # Replace the current node with it's replacement.
@@ -388,7 +388,7 @@ class Tree:
             self.__delete_repair(node)
 
         # If the node still has a parent, remove it.
-        if node.parent:
+        if node.parent is not None:
             if node is node.parent.left:
                 node.parent.left = None
             elif node is node.parent.right:
@@ -501,7 +501,7 @@ class Tree:
         root.right = pivot.left
         pivot_left_size = 0
 
-        if pivot.left:
+        if pivot.left is not None:
             pivot.left.parent = root
             pivot_left_size = pivot.left.size
 
@@ -539,7 +539,7 @@ class Tree:
         root.left = pivot.right
         pivot_right_size = 0
 
-        if pivot.right:
+        if pivot.right is not None:
             pivot.right.parent = root
             pivot_right_size = pivot.right.size
 
@@ -561,11 +561,11 @@ class Tree:
 
 
 def color_of(node: Node):
-    return node.color if node else BLACK
+    return node.color if node is not None else BLACK
 
 
 def parent_of(node: Node):
-    return node.parent if node else None
+    return node.parent if node is not None else None
 
 
 def grandparent_of(node: Node):
@@ -578,8 +578,8 @@ def set_color(node: Node, color: bool):
 
 
 def left_of(node: Node):
-    return node.left if node else None
+    return node.left if node is not None else None
 
 
 def right_of(node: Node):
-    return node.right if node else None
+    return node.right if node is not None else None
