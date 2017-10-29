@@ -16,6 +16,10 @@ from pipe_sort import Sorter
 from player import Player
 from tournament import Tournament
 
+# Defines the two possible genders.
+MALE = False
+FEMALE = True
+
 
 def parse_csv_line(line):
     """Parses a CSV (comma separated values) line.
@@ -167,7 +171,7 @@ def load_ranking_points_file(file_name):
     return ranking_points
 
 
-def load_round_file(file_name, tournament_name, players_by_name):
+def load_round_file(file_name, tournament_name, players_by_name, gender):
     """Loads a round from file and updates each players scores.
 
     :param file_name: The file name.
@@ -199,6 +203,13 @@ def load_round_file(file_name, tournament_name, players_by_name):
             if player_a is None or player_b is None:
                 raise ValueError("A player in this round does not exist in "
                                  "this tournament")
+
+            if (gender == MALE and player_a_score == 3 and player_b_score == 3) or \
+                    (gender == FEMALE and player_a_score == 2 and player_b_score == 2):
+                print("Skipping erroneous entry in " + file_name)
+                print("No two players in the same match can win the match point")
+                print(line)
+                continue
 
             if player_a.scores[tournament_name] is None:
                 player_a.scores[tournament_name] = player_a_score
@@ -256,10 +267,10 @@ def run():
         female_round_file_names = ["../resources/round1_ladies.csv"]
 
         for file_name in male_round_file_names:
-            load_round_file(file_name, tournament_name, men_by_name)
+            load_round_file(file_name, tournament_name, men_by_name, MALE)
 
         for file_name in female_round_file_names:
-            load_round_file(file_name, tournament_name, women_by_name)
+            load_round_file(file_name, tournament_name, women_by_name, FEMALE)
 
         # Sort each of the players by score.
         male_sorter = Sorter(lambda a, b: b.scores[tournament_name] - a.scores[tournament_name])
