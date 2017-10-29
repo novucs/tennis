@@ -41,7 +41,24 @@ class Sorter:
         """
         self._run.append(x)
         self._previous = x
-        self.consume = self.__run_front
+        self.consume = self.__run_single
+
+    def __run_single(self, x):
+        """There should be a single element in the current run when called.
+        This is where the sort decides whether to start appending elements to
+        the front or the back of the current run.
+
+        :param x: The element to append to the run.
+        :return: None
+        """
+        if self._compare(x, self._previous) < 0:
+            self._run.append_front(x)
+            self._previous = x
+            self.consume = self.__run_back
+        else:
+            self._run.append(x)
+            self._previous = x
+            self.consume = self.__run_front
 
     def __run_front(self, x):
         """Continues appending to the run if still running upwards in value.
@@ -55,7 +72,7 @@ class Sorter:
             self._run = List()
             self._run.append(x)
             self._previous = x
-            self.consume = self.__run_back
+            self.consume = self.__run_single
         else:
             self._run.append(x)
             self._previous = x
@@ -72,7 +89,7 @@ class Sorter:
             self._run = List()
             self._run.append(x)
             self._previous = x
-            self.consume = self.__run_front
+            self.consume = self.__run_single
         else:
             self._run.append_front(x)
             self._previous = x
