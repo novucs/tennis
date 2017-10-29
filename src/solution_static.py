@@ -46,6 +46,24 @@ def parse_csv_line(line):
     return values.to_array()
 
 
+def handle_duplicates(file_name, previous_lines, line):
+    """Handles duplicate entries found in files.
+
+    :param file_name: The file name.
+    :param previous_lines: The hash table of all previous found lines.
+    :param line: The current line read in.
+    :return: True if a duplicate was found otherwise false.
+    """
+
+    if previous_lines[line]:
+        print("Skipping duplicate line found in " + file_name)
+        print(line)
+        return True
+
+    previous_lines[line] = True
+    return False
+
+
 def load_tournaments_file(file_name):
     """Loads tournaments from a file.
 
@@ -60,8 +78,12 @@ def load_tournaments_file(file_name):
         current_name = ""
         current_difficulty = 0
         prizes = HashTable()
+        previous_lines = HashTable()
 
         for line in the_file:
+            if handle_duplicates(file_name, previous_lines, line):
+                continue
+
             if header:
                 header = False
                 continue
@@ -102,7 +124,12 @@ def load_players_file(file_name, tournament_count):
     players = HashTable()
 
     with open(file_name, "r") as the_file:
+        previous_lines = HashTable()
+
         for line in the_file:
+            if handle_duplicates(file_name, previous_lines, line):
+                continue
+
             values = parse_csv_line(line)
             name = values[0]
             player = Player(name, tournament_count)
@@ -122,8 +149,12 @@ def load_ranking_points_file(file_name):
 
     with open(file_name, "r") as the_file:
         header = True
+        previous_lines = HashTable()
 
         for line in the_file:
+            if handle_duplicates(file_name, previous_lines, line):
+                continue
+
             if header:
                 header = False
                 continue
@@ -147,8 +178,12 @@ def load_round_file(file_name, tournament_name, players_by_name):
 
     with open(file_name, "r") as the_file:
         header = True
+        previous_lines = HashTable()
 
         for line in the_file:
+            if handle_duplicates(file_name, previous_lines, line):
+                continue
+
             if header:
                 header = False
                 continue
