@@ -136,7 +136,31 @@ runs. We know all the data is sorted once there is only a single run remaining.
 
 #### Pseudo code
 ```
-tbd
+# === Data structure definitions === #
+
+# Apply seperate definitions for each tournament.
+sorter = Sorter()
+sorted_players = Array()
+
+# === Data sorting functions === #
+
+request_input_files():
+    # Asks user for all files required for loading and sorting all the player
+    # scores.
+
+parse_player_data(file):
+    # Parses the requested file and adjusts all player scores.
+
+run():
+    input_files = request_input_files()
+
+    for file in input_files:
+        players = parse_player_data(file)
+    
+        for player in players:
+            sorter.consume(player)
+
+    sorted_players = sorter.sort()
 ```
 
 ## Other notes
