@@ -255,6 +255,13 @@ def tally_and_print(tournament, players, ranking_points):
 
 
 def get_file(name, default):
+    """Gets the path to a file from the user.
+
+    :param name: The simple name of the files purpose.
+    :param default: The default path for this file.
+    :return: A valid path to the requested file.
+    """
+
     while True:
         file_name = input("Please enter the path to the " + name + " file ( " + default + "): ")
 
@@ -267,6 +274,12 @@ def get_file(name, default):
 
 
 def get_file_list(name):
+    """Gets the path to a list of files from the user.
+
+    :param name: The simple name of the files purpose.
+    :return: A valid list of paths to the requested files.
+    """
+
     print("Please enter a list of " + name + " files. Enter 'done' when finished.")
     files = List()
 
@@ -284,6 +297,11 @@ def get_file_list(name):
 
 
 def run():
+    """Runs the static solution program.
+
+    :return: None
+    """
+
     print("Solution - Static")
 
     # Load tournaments, players and ranking points.
