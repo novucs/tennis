@@ -124,7 +124,7 @@ it not only finds runs in the data but it also groups these runs by their
 relative sizes using the specialised tree data structure specified in the
 stream solution. Note that this tree is indexed by the size of the runs, not
 the data itself. The other difference is, insertion sort is now no longer
-necessary as we it is more optimal to recursively merge sort all similar sized
+necessary as it is more optimal to recursively merge sort all similar sized
 runs. We know all the data is sorted once there is only a single run remaining.
 
 #### Pipe sort
