@@ -177,6 +177,7 @@ def load_round_file(file_name, tournament_name, players_by_name, gender):
     :param file_name: The file name.
     :param tournament_name: The name of the tournament.
     :param players_by_name: The players participating in this round.
+    :param gender: The gender of the players in this round.
     :return: None
     """
 
