@@ -124,6 +124,15 @@ required information on tournaments. This means when each game is running, it's
 possible to update the player scores and each of the leader boards become
 automatically updated and sorted.
 
+## How to run
+To run the static solution:
+
+`python src/solution_static.py`
+
+To run the stream solution:
+
+`python src/solution_stream.py`
+
 ## Other notes
 - The library numpy was used in this project, not for ease of use but to
   emulate a proper C-style array of immutable size.
