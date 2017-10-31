@@ -444,19 +444,19 @@ ib = 0
 while ia < run_a.size and ib < run_b.size:
     if run_a[ia] > run_b[ib]:
         merged[index] = run_b[ib]
-        ib + +
+        ib++
     else:
         merged[index] = run_a[ia]
-        ia + +
-    index + +
+        ia++
+    index++
 
 while ia < run_a.size:
     merged[index] = run_a[ia]
-    ia + +
+    ia++
 
 while ib < run_b.size:
     merged[index] = run_b[ib]
-    ib + +
+    ib++
 
 return merged
 ```
