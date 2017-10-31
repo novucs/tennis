@@ -107,6 +107,23 @@ runs. We know all the data is sorted once there is only a single run remaining.
   - Average: `O(n log n)`
   - Worst: `O(n log n)`
 
+## User interface
+The static solutions method of taking in data is via the default files as
+provided for the assignment. This makes sense as we do not expect this data to
+change at all during the player ranking and reward finding process. One change
+was made to the provided files, since I dislike having hardcoded values in my
+programs. I added the difficulty level of each tournament when they're defined
+in the `tournaments.csv` file as an extra column. Other than that, they are as
+they were provided.
+
+Whereas in the solution for streamed data, I decided to take an entirely
+different route as we are expecting the data to come in at different times and
+want to update the leader boards live. I introduced a method of receiving user
+input via command line, using a state-based model to easily parse all the
+required information on tournaments. This means when each game is running, it's
+possible to update the player scores and each of the leader boards become
+automatically updated and sorted.
+
 ## Other notes
 - The library numpy was used in this project, not for ease of use but to
   emulate a proper C-style array of immutable size.
