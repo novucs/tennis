@@ -1,7 +1,7 @@
 # Pseudo code
 I'm putting all pseudo code here, to reduce clogging up the main readme.
 
-## Red-black order statistic tree pseudo code
+## Red-black order statistic tree
 ```
 root = null
 size = 0
@@ -223,7 +223,7 @@ rotate_right(node)
     # Same as rotate_left(node), but with left/right swapped.
 ```
 
-#### Hash table pseudo code
+## Hash table
 ```
 table = [] # Array of linked lists
 size = 0
@@ -280,7 +280,7 @@ ensure_capacity(min_size)
         put(key, value)
 ```
 
-#### Pipe sort pseudo code
+## Pipe sort
 ```
 runs = Tree() # Any multi-value order statistic tree would work here.
 run = List() # Linked lists ensure value insertion is O(1).
