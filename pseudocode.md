@@ -280,6 +280,85 @@ ensure_capacity(min_size)
         put(key, value)
 ```
 
+## Doubly-linked list
+```
+left = null
+right = null
+size = 0
+
+# Appends an item to the back of the list.
+append_back(item)
+    size++
+    node = {item: item}
+    if last != null:
+        node.left = last
+        last.right = node
+    else:
+        first = node
+    last = node
+
+# Appends an item to the front of the list.
+append_front(item)
+    size++
+    node = {item: item}
+    if first != null:
+        node.right = first
+        first.left = node
+    else:
+        last = node
+    first = node
+
+# Finds the node of an item.
+find(item)
+    node = left
+    while node:
+        if node.item == item:
+            return node
+        node = node.left
+    return null
+
+# Deletes an item from the list.
+delete(item)
+    node = find(item)
+    
+    if node == null:
+        return
+    
+    size--
+    node.left.right = node.right
+    node.right.left = node.left
+    
+    if left == node:
+        left = node.right
+        
+    if right == node:
+        right = node.left
+
+# Selects an item at the index of the list.
+select(index)
+    if index <= size / 2:
+        node = first
+        while index > 0:
+            node = node.right
+            index--
+    else:
+        node = last
+        while index < size:
+            node = node.left
+            index++
+    return node.item
+
+# Convers the list to an array.
+to_array()
+    array = [size]
+    node = left
+    i = 0
+    while node:
+        array[i++] = node.item
+        node = node.right
+    return array
+```
+
 ## Pipe sort
 ```
 runs = Tree() # Any multi-value order statistic tree would work here.
