@@ -17,7 +17,7 @@ class Player:
         scores: The players scores, indexed by the tournament name.
     """
 
-    def __init__(self, name, tournament_count):
+    def __init__(self, name, tournament_count=4):
         self.name = name
         self.ranking_points = 0
         self.scores = HashTable(initial_capacity=tournament_count)

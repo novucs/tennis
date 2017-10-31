@@ -45,7 +45,8 @@ class Tree:
         _size: The number of nodes currently stored in the tree.
     """
 
-    def __init__(self):
+    def __init__(self, comparator=lambda a, b: a - b):
+        self._compare = comparator
         self._root = None
         self._size = 0
 
@@ -63,6 +64,10 @@ class Tree:
 
     def __iter__(self):
         node = self._root
+
+        if node is None:
+            return
+
         while node.left is not None:
             node = node.left
 
@@ -125,14 +130,15 @@ class Tree:
         while parent is not None:
             # Always increment the parents size.
             parent.size += 1
+            comparison = self._compare(node.key, parent.key)
 
             # Update node then return if same key already exists.
-            if node.key == parent.key:
+            if comparison == 0:
                 parent.values.append(value)
                 return False
 
             # Otherwise keep searching for a free spot in the tree.
-            if node.key < parent.key:
+            if comparison < 0:
                 if parent.left is None:
                     parent.left = node
                     break
@@ -245,9 +251,10 @@ class Tree:
 
         node = self._root
         while node is not None:
-            if key < node.key:
+            comparison = self._compare(key, node.key)
+            if comparison < 0:
                 node = node.left
-            elif key > node.key:
+            elif comparison > 0:
                 node = node.right
             else:
                 return node

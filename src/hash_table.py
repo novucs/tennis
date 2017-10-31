@@ -78,20 +78,21 @@ class HashTable:
         target = target[:-2] + "]"
         return target
 
-    def find(self, key):
+    def find(self, key, default=None):
         """Finds the value associated with the provided key.
 
         :param key: The key to search with.
-        :return: The associated value if found, otherwise None.
+        :param default: The value to return if not found.
+        :return: The associated value if found, otherwise default.
         """
         if self._size == 0:
-            return None
+            return default
 
         code = hash(key) % self._table.size
         node = self._table[code].find(key)
 
         if node is None:
-            return None
+            return default
 
         return node.value
 

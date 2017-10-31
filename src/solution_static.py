@@ -376,13 +376,13 @@ def run():
     print("Men:")
 
     for player in sorted_men:
-        print(player.name + "\t" + str(player.ranking_points))
+        print(player.name + " " + str(player.ranking_points))
 
     print()
     print("Women:")
 
     for player in sorted_women:
-        print(player.name + "\t" + str(player.ranking_points))
+        print(player.name + " " + str(player.ranking_points))
 
 
 if __name__ == '__main__':
