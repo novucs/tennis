@@ -41,7 +41,8 @@ with the data provider.
   operations).
 - Multiple players may have the same score, so each node in the tree must allow
   for storing multiple players. In this scenario, I have chosen to simply
-  supply a linked list for holding the node values.
+  supply a linked list for holding the node values. This is why the search and
+  deletion operations are worst case `O(n)`, unlike normal red-black trees.
 - We may be required to find all players at a specified rank, or find the rank
   of a specified player. Each node is given a size, which can be used for
   performing these `O(log n)` operations.
