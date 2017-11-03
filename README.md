@@ -34,7 +34,8 @@ with the data provider.
 - Space complexity: `O(n)`
 - Best case access, search, insertion and deletion: `O(log n)`
 - Average case access, search, insertion and deletion: `O(log n)`
-- Worst case access, search, insertion and deletion: `O(n)`
+- Worst case access and insertion: `O(log n)`
+- Worst case search and deletion: `O(n)`
 - The red-black self balancing method was chosen as it is guaranteed `O(log n)`
   lookup and modification time within the tree itself (forgetting node
   operations).
