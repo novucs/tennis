@@ -49,13 +49,15 @@ def fetch_boolean(message, default=None):
         default_text = "Y/n" if default else "y/N"
         user_input = fetch_string(message, default_text)
 
-        if user_input is not None:
-            parsed = user_input.lower()
+        if user_input == default_text:
+            return default
 
-            if parsed.startswith("y") or parsed.startswith("t"):
-                return True
-            elif parsed.startswith("n") or parsed.startswith("f"):
-                return False
+        parsed = user_input.lower()
+
+        if parsed.startswith("y") or parsed.startswith("t"):
+            return True
+        elif parsed.startswith("n") or parsed.startswith("f"):
+            return False
 
         print("Invalid boolean entered, try again")
 
@@ -131,8 +133,10 @@ def create_tournaments():
 
             if overwrite:
                 prize = fetch_string("Enter the prize money to give", "1,000")
-                prizes.insert(rank, prize)
-                print("Successfully added a prize to " + name)
+                if prizes.insert(rank, prize) is not None:
+                    print("Successfully modified prize in " + name)
+                else:
+                    print("Successfully added a prize to " + name)
 
             creating_prizes = fetch_boolean("Would you like to enter another prize?", True)
 
@@ -300,7 +304,10 @@ def play_game(tournament, sorted_players, players_by_name, max_score):
     :return: The game results.
     """
 
+    default_max_score = max_score
+
     while True:
+        max_score = default_max_score
         player_a = fetch_player("Enter player A", players_by_name)
         score_a = fetch_score("Enter " + player_a.name + "'s score", max_score)
         print(player_a.name + " scored " + str(score_a) + " points")
@@ -316,7 +323,7 @@ def play_game(tournament, sorted_players, players_by_name, max_score):
         score_b = fetch_score("Enter " + player_b.name + "'s score", max_score)
         print(player_b.name + " scored " + str(score_b) + " points")
 
-        if score_a != max_score and score_b != max_score:
+        if score_a != default_max_score and score_b != default_max_score:
             print("Error, nobody won this game, please try again")
             continue
 
