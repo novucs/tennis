@@ -6,7 +6,6 @@ Solution for static data.
 
 """
 
-import math
 import os.path
 
 import numpy as np
@@ -17,9 +16,13 @@ from pipe_sort import Sorter
 from player import Player
 from tournament import Tournament
 
-# Defines the two possible genders.
+# Define the two possible genders.
 MALE = False
 FEMALE = True
+
+# Define pretty banners.
+HEADER = "\n" + "-" * 40 + "\n\n"
+FOOTER = "\n\n" + "-" * 40 + "\n"
 
 
 def parse_csv_line(line):
@@ -72,10 +75,10 @@ def handle_duplicates(file_name, previous_lines, line):
 def load_tournaments_file(file_name):
     """Loads tournaments from a file.
 
-    :return: A hash table of tournaments, mapped by their name.
+    :return: A list of tournaments.
     """
 
-    tournaments = HashTable()
+    tournaments = List()
 
     with open(file_name, "r") as the_file:
         header = True
@@ -107,14 +110,14 @@ def load_tournaments_file(file_name):
                 else:
                     tournament = Tournament(current_name, prizes,
                                             current_difficulty)
-                    tournaments.insert(current_name, tournament)
+                    tournaments.append(tournament)
                     current_name = name
                     prizes = HashTable()
 
             prizes.insert(place, prize)
 
     tournament = Tournament(current_name, prizes, current_difficulty)
-    tournaments.insert(current_name, tournament)
+    tournaments.append(tournament)
     return tournaments
 
 
@@ -235,7 +238,7 @@ def tally_and_print(tournament, players, ranking_points):
     """
 
     rank = 0
-    previous_score = math.inf
+    previous_score = float('inf')
 
     for player in players:
         current_score = player.scores[tournament.name]
@@ -296,40 +299,31 @@ def get_file_list(name):
     return files
 
 
-def run():
+def run(tournaments, men_by_name, women_by_name, ranking_points, complete_tournaments):
     """Runs the static solution program.
 
     :return: None
     """
 
-    print("Solution - Static")
+    for tournament in tournaments:
+        # Do nothing if tournament is already complete.
+        if complete_tournaments.find(tournament.name, False):
+            continue
 
-    # Load tournaments, players and ranking points.
-    tournaments_file = get_file("tournaments", "../resources/tournaments.csv")
-    male_players_file = get_file("male players", "../resources/male_players.csv")
-    female_players_file = get_file("female players", "../resources/female_players.csv")
-    ranking_points_file = get_file("ranking points", "../resources/ranking_points.csv")
-
-    tournaments = load_tournaments_file(tournaments_file)
-    men_by_name = load_players_file(male_players_file, len(tournaments))
-    women_by_name = load_players_file(female_players_file, len(tournaments))
-    ranking_points = load_ranking_points_file(ranking_points_file)
-
-    for tournament_name, tournament in tournaments:
         # Collect all statistics for each round in the tournament.
-        print("Now beginning processing for tournament " + tournament_name)
-        male_round_file_names = get_file_list(tournament_name + " male round")
-        female_round_file_names = get_file_list(tournament_name + " female round")
+        print("Now beginning processing for tournament " + tournament.name)
+        male_round_file_names = get_file_list(tournament.name + " male round")
+        female_round_file_names = get_file_list(tournament.name + " female round")
 
         for file_name in male_round_file_names:
-            load_round_file(file_name, tournament_name, men_by_name, MALE)
+            load_round_file(file_name, tournament.name, men_by_name, MALE)
 
         for file_name in female_round_file_names:
-            load_round_file(file_name, tournament_name, women_by_name, FEMALE)
+            load_round_file(file_name, tournament.name, women_by_name, FEMALE)
 
         # Sort each of the players by score.
-        male_sorter = Sorter(lambda a, b: b.scores[tournament_name] - a.scores[tournament_name])
-        female_sorter = Sorter(lambda a, b: b.scores[tournament_name] - a.scores[tournament_name])
+        male_sorter = Sorter(lambda a, b: b.scores[tournament.name] - a.scores[tournament.name])
+        female_sorter = Sorter(lambda a, b: b.scores[tournament.name] - a.scores[tournament.name])
 
         for player_name, profile in men_by_name:
             male_sorter.consume(profile)
@@ -339,22 +333,26 @@ def run():
 
         tournament.sorted_men = male_sorter.sort()
         tournament.sorted_women = female_sorter.sort()
+        complete_tournaments.insert(tournament.name, True)
 
         # Print all players that have earned prizes.
-        print("--------------------------------\n")
-        print("Results for tournament " + tournament.name + "\n")
-        print("--------------------------------\n")
-
+        print(HEADER + "Results for tournament " + tournament.name + FOOTER)
         print("Men's Prizes")
         tally_and_print(tournament, tournament.sorted_men, ranking_points)
 
         print()
-
         print("Women's Prizes")
         tally_and_print(tournament, tournament.sorted_women, ranking_points)
 
         print("\n\n")
 
+    print(HEADER + "CIRCUIT COMPLETE" + FOOTER)
+
+    # Print all players ordered by ranking points.
+    print_ranked_players(men_by_name, women_by_name)
+
+
+def print_ranked_players(men_by_name, women_by_name):
     # Sort all players by the overall circuit ranking points.
     male_sorter = Sorter(lambda a, b: b.ranking_points - a.ranking_points)
     female_sorter = Sorter(lambda a, b: b.ranking_points - a.ranking_points)
@@ -368,22 +366,138 @@ def run():
     sorted_men = male_sorter.sort()
     sorted_women = female_sorter.sort()
 
-    # Print all players ordered by ranking points.
-    print("--------------------------------\n")
-    print("Total ranking points\n")
-    print("--------------------------------\n")
-
-    print("Men:")
+    print("Male ranking points:")
 
     for player in sorted_men:
         print(player.name + " " + str(player.ranking_points))
 
     print()
-    print("Women:")
+    print("Female ranking points:")
 
     for player in sorted_women:
         print(player.name + " " + str(player.ranking_points))
 
 
+def load_circuit_progress(file_name, complete_tournaments):
+    if os.path.isfile(file_name):
+        with open(file_name, "r") as file:
+            for line in file:
+                tournament_name = line.replace("\n", "")
+                complete_tournaments.insert(tournament_name, True)
+
+
+def load_player_progress(file_name, players_by_name):
+    if os.path.isfile(file_name):
+        with open(file_name, "r") as file:
+            for line in file:
+                values = parse_csv_line(line)
+                player_name = values[0]
+                ranking_points = float(values[1])
+                player = players_by_name.find(player_name)
+                if player is not None:
+                    player.ranking_points = ranking_points
+                else:
+                    player = Player(player_name)
+                    player.ranking_points = ranking_points
+                    players_by_name.insert(player_name, player)
+
+
+def persist_tournaments(file_name, complete_tournaments):
+    # Delete file if already exists.
+    if os.path.isfile(file_name):
+        os.remove(file_name)
+
+    # Save circuit progress.
+    directory_name = os.path.dirname(os.path.realpath(file_name))
+    if not os.path.isdir(directory_name):
+        os.makedirs(directory_name)
+
+    with open(file_name, "a") as file:
+        for name, _ in complete_tournaments:
+            file.write(name + "\n")
+
+
+def persist_players(file_name, players_by_name):
+    # Delete file if already exists.
+    if os.path.isfile(file_name):
+        os.remove(file_name)
+
+    # Save all players progress.
+    directory_name = os.path.dirname(os.path.realpath(file_name))
+    if not os.path.isdir(directory_name):
+        os.makedirs(directory_name)
+
+    with open(file_name, "a") as file:
+        for _, player in players_by_name:
+            file.write(player.name + "," + str(player.ranking_points) + "\n")
+
+
+def persist(complete_tournaments_file, complete_tournaments,
+            male_progress_file, men_by_name,
+            female_progress_file, women_by_name):
+    print("Saving progress...")
+    persist_tournaments(complete_tournaments_file, complete_tournaments)
+    persist_players(male_progress_file, men_by_name)
+    persist_players(female_progress_file, women_by_name)
+    print("Save complete!")
+
+
+def handle_interrupt(complete_tournaments, complete_tournaments_file,
+                     female_progress_file, male_progress_file,
+                     men_by_name, women_by_name):
+    print(HEADER + "CIRCUIT INTERRUPTED" + FOOTER)
+    print_ranked_players(men_by_name, women_by_name)
+    persist(complete_tournaments_file, complete_tournaments,
+            male_progress_file, men_by_name,
+            female_progress_file, women_by_name)
+    return True
+
+
+def main():
+    print(HEADER + "STATIC SOLUTION" + FOOTER)
+
+    # Load tournaments and players from file. Retaining progress saved.
+    tournaments_file = get_file("tournaments", "../resources/tournaments.csv")
+    male_players_file = get_file("male players", "../resources/male_players.csv")
+    female_players_file = get_file("female players", "../resources/female_players.csv")
+    ranking_points_file = get_file("ranking points", "../resources/ranking_points.csv")
+    complete_tournaments_file = "../output/static/tournaments.csv"
+    male_progress_file = "../output/static/men.csv"
+    female_progress_file = "../output/static/women.csv"
+
+    tournaments = load_tournaments_file(tournaments_file)
+    men_by_name = load_players_file(male_players_file, len(tournaments))
+    women_by_name = load_players_file(female_players_file, len(tournaments))
+    ranking_points = load_ranking_points_file(ranking_points_file)
+    complete_tournaments = HashTable()
+
+    load_circuit_progress(complete_tournaments_file, complete_tournaments)
+    load_player_progress(male_progress_file, men_by_name)
+    load_player_progress(female_progress_file, women_by_name)
+    done = False
+
+    try:
+        # Run the remaining tournaments from where we left off.
+        print(HEADER + "STARTING THE CIRCUIT" + FOOTER)
+        print("Press CTRL+C if you wish to pause and save the")
+        print("circuit progress for another day.\n")
+        run(tournaments, men_by_name, women_by_name, ranking_points, complete_tournaments)
+    except (EOFError, KeyboardInterrupt):
+        while not done:
+            try:
+                done = handle_interrupt(complete_tournaments, complete_tournaments_file,
+                                        female_progress_file, male_progress_file,
+                                        men_by_name, women_by_name)
+            except KeyboardInterrupt:
+                print("Retrying...")
+                continue
+
+        return
+
+    persist(complete_tournaments_file, complete_tournaments,
+            male_progress_file, men_by_name,
+            female_progress_file, women_by_name)
+
+
 if __name__ == '__main__':
-    run()
+    main()
