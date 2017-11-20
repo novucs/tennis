@@ -415,6 +415,10 @@ def play_tournament(tournament, players_by_name, ranking_points, ranked_players)
 
 
 def load_tournaments():
+    """Loads all tournaments from file.
+
+    :return: The tournaments.
+    """
     tournaments = HashTable()
     with open("../output/stream/remaining_tournaments.csv", "r") as file:
         for line in file:
@@ -428,6 +432,11 @@ def load_tournaments():
 
 
 def load_players(file_name):
+    """Loads all players from file.
+
+    :param file_name: The file name.
+    :return: The players.
+    """
     players = HashTable()
     with open(file_name, "r") as file:
         for line in file:
@@ -441,6 +450,10 @@ def load_players(file_name):
 
 
 def load_ranking_points():
+    """Loads all ranking points from file.
+
+    :return: The ranking points.
+    """
     ranking_points = HashTable()
     with open("../output/stream/ranking_points.csv", "r") as file:
         for line in file:
@@ -452,6 +465,12 @@ def load_ranking_points():
 
 
 def load_tournament_scores(tournament, players_by_name):
+    """Loads tournament scores from file.
+
+    :param tournament: The tournament.
+    :param players_by_name: The players.
+    :return: None
+    """
     with open("../output/stream/scores.csv", "r") as file:
         for line in file:
             values = parse_csv_line(line)
@@ -462,14 +481,35 @@ def load_tournament_scores(tournament, players_by_name):
 
 
 def persist_current_tournament(file_name, first_gender, first_gender_complete, tournament, tournament_complete):
+    """Saves the current tournament to a file.
+
+    :param file_name: The file name.
+    :param first_gender: The first gender played.
+    :param first_gender_complete: True if the first gender has finished.
+    :param tournament: The tournament.
+    :param tournament_complete: True if the tournament is complete.
+    :return: None
+    """
     prepare_persist(file_name)
     with open(file_name, "a") as file:
-        file.write(tournament.name + "," + ("m" if first_gender == MALE else "f") + "," + str(first_gender_complete) +
+        tournament_name = tournament.name if tournament is not None else ""
+        file.write(tournament_name + "," + ("m" if first_gender == MALE else "f") + "," + str(first_gender_complete) +
                    "," + str(tournament_complete))
 
 
 def persist_tournament_scores(file_name, players_by_name, tournament):
+    """Saves tournament scores to file.
+
+    :param file_name: The file name.
+    :param players_by_name: The players.
+    :param tournament: The tournament.
+    :return: None
+    """
     prepare_persist(file_name)
+
+    if tournament is None:
+        return
+
     with open(file_name, "a") as file:
         for name, player in players_by_name:
             score = player.scores.find(tournament.name, 0)
@@ -477,6 +517,12 @@ def persist_tournament_scores(file_name, players_by_name, tournament):
 
 
 def persist_circuit_points(file_name, players_by_name):
+    """Saves the current points.
+
+    :param file_name: The file name.
+    :param players_by_name: The players.
+    :return: None
+    """
     prepare_persist(file_name)
     with open(file_name, "a") as file:
         for name, player in players_by_name:
@@ -484,6 +530,12 @@ def persist_circuit_points(file_name, players_by_name):
 
 
 def persist_ranking_points(file_name, ranking_points):
+    """Saves the ranking points to file.
+
+    :param file_name: The file name.
+    :param ranking_points: The ranking points.
+    :return: None
+    """
     prepare_persist(file_name)
     with open(file_name, "a") as file:
         for rank, points in ranking_points:
@@ -491,6 +543,12 @@ def persist_ranking_points(file_name, ranking_points):
 
 
 def persist_remaining_tournaments(file_name, remaining_tournaments):
+    """Saves the remaining tournaments to file.
+
+    :param file_name: The file name,
+    :param remaining_tournaments: The remaining tournaments.
+    :return: None
+    """
     prepare_persist(file_name)
     with open(file_name, "a") as file:
         for name, _ in remaining_tournaments:
@@ -538,7 +596,7 @@ class Circuit:
 
             print_circuit_start()
 
-            if not self.active_tournament_complete:
+            if self.active_tournament is not None or not self.active_tournament_complete:
                 if self.continue_unfinished_game():
                     return
         else:
@@ -557,10 +615,15 @@ class Circuit:
         self.save()
 
     def run_circuit(self):
+        """Runs all the circuits until either interrupted or complete.
+
+        :return: True if interrupted, otherwise False.
+        """
         while len(self.remaining_tournaments) > 0:
             try:
                 # Select the next tournament to play through.
                 self.active_tournament = fetch_next_tournament(self.tournaments, self.remaining_tournaments)
+                self.active_tournament_complete = False
                 print("Playing the tournament " + self.active_tournament.name)
 
                 # Get the next gender playing.
@@ -582,12 +645,17 @@ class Circuit:
 
                 # The tournament is no longer required to run.
                 self.remaining_tournaments.delete(self.active_tournament.name)
+                self.active_tournament_complete = True
             except (EOFError, KeyboardInterrupt):
                 self.handle_interrupt()
                 return True
         return False
 
     def fetch_new_session(self):
+        """Fetches a new circuit session from user input.
+
+        :return: None
+        """
         print("Please create all tournaments in this circuit")
         self.tournaments = create_tournaments()
         print("Please enter all the male player names")
@@ -607,6 +675,10 @@ class Circuit:
             self.ranked_women.insert(profile.ranking_points, profile)
 
     def continue_unfinished_game(self):
+        """Continues a previously unfinished tournament.
+
+        :return: True if interrupted halfway through.
+        """
         try:
             print("Playing the tournament " + self.active_tournament.name)
 
@@ -639,6 +711,10 @@ class Circuit:
         return False
 
     def load_previous_session(self):
+        """Loads the previously saved session for the current circuit.
+
+        :return: True if failed to load, otherwise False.
+        """
         # noinspection PyBroadException
         try:
             self.tournaments = load_tournaments()
@@ -679,6 +755,10 @@ class Circuit:
         return False
 
     def handle_interrupt(self):
+        """Handles when the circuit has been interrupted.
+
+        :return: None
+        """
         while True:
             try:
                 if self.active_tournament is None:
@@ -695,6 +775,10 @@ class Circuit:
                 continue
 
     def save(self):
+        """Saves the circuit progress.
+
+        :return: None
+        """
         print("\nSaving progress...")
         base_directory = "../output/stream/"
         current_tournament_csv = base_directory + "current_tournament.csv"
@@ -716,12 +800,22 @@ class Circuit:
 
 
 def print_circuit_start():
+    """Prints the circuit start message.
+
+    :return: None
+    """
     print(HEADER + "STARTING THE CIRCUIT" + FOOTER)
     print("Press CTRL+C if you wish to pause and save the")
     print("circuit progress for another day.\n")
 
 
 def print_ranking_points(ranked_men, ranked_women):
+    """Prints the ranking points.
+
+    :param ranked_men: The ranked men.
+    :param ranked_women: The ranked women.
+    :return:
+    """
     # Print all players ordered by ranking points.
     print("Male ranking points:")
     for points, player in ranked_men:
