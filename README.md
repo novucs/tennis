@@ -126,10 +126,18 @@ required information on tournaments. This means when each game is running, it's
 possible to update the player scores and each of the leader boards become
 automatically updated and sorted.
 
+Both solutions offer the ability to pause and save all circuit data for another
+day by pressing `CTRL+C` at any point during the score creation process. To
+continue from the previous state, simply re-run the program. The streamed
+implementation offers the ability to discard and overwrite the previous circuit
+data upon re-run. The same affect can be achieved simply through manually
+deleting the programs relevant `output` sub-directory.
+
 ## How to run
 Requires Python 3. This project was tested using Python 3.6.3.
 
-First, ensure you are in the source directory.
+First, ensure you are in the source directory:
+
 `cd src`
 
 To run the static solution:
