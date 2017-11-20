@@ -8,50 +8,11 @@ Solution for static data.
 
 import os.path
 
-import numpy as np
-
 from hash_table import HashTable
-from linked_list import List
 from pipe_sort import Sorter
 from player import Player
 from tournament import Tournament
-
-# Define the two possible genders.
-MALE = False
-FEMALE = True
-
-# Define pretty banners.
-HEADER = "\n" + "-" * 40 + "\n\n"
-FOOTER = "\n\n" + "-" * 40 + "\n"
-
-
-def parse_csv_line(line):
-    """Parses a CSV (comma separated values) line.
-
-    :param line: The line to parse.
-    :return: The array of values in this line.
-    """
-
-    if line == "":
-        return np.empty(0)
-
-    values = List()
-    value = ""
-    quotes = False
-
-    for character in line:
-        if character == '\n':
-            break
-        elif character == '"':
-            quotes = not quotes
-        elif not quotes and character == ',':
-            values.append(value)
-            value = ""
-        else:
-            value += character
-
-    values.append(value)
-    return values.to_array()
+from utils import *
 
 
 def handle_duplicates(file_name, previous_lines, line):
@@ -382,7 +343,8 @@ def load_circuit_progress(file_name, complete_tournaments):
     if os.path.isfile(file_name):
         with open(file_name, "r") as file:
             for line in file:
-                tournament_name = line.replace("\n", "")
+                values = parse_csv_line(line)
+                tournament_name = values[0]
                 complete_tournaments.insert(tournament_name, True)
 
 
@@ -403,30 +365,14 @@ def load_player_progress(file_name, players_by_name):
 
 
 def persist_tournaments(file_name, complete_tournaments):
-    # Delete file if already exists.
-    if os.path.isfile(file_name):
-        os.remove(file_name)
-
-    # Save circuit progress.
-    directory_name = os.path.dirname(os.path.realpath(file_name))
-    if not os.path.isdir(directory_name):
-        os.makedirs(directory_name)
-
+    prepare_persist(file_name)
     with open(file_name, "a") as file:
         for name, _ in complete_tournaments:
             file.write(name + "\n")
 
 
 def persist_players(file_name, players_by_name):
-    # Delete file if already exists.
-    if os.path.isfile(file_name):
-        os.remove(file_name)
-
-    # Save all players progress.
-    directory_name = os.path.dirname(os.path.realpath(file_name))
-    if not os.path.isdir(directory_name):
-        os.makedirs(directory_name)
-
+    prepare_persist(file_name)
     with open(file_name, "a") as file:
         for _, player in players_by_name:
             file.write(player.name + "," + str(player.ranking_points) + "\n")

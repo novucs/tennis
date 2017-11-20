@@ -11,10 +11,7 @@ from hash_table import HashTable
 from player import Player
 from ranked_tree import Tree
 from tournament import Tournament
-
-# Defines the two possible genders.
-MALE = False
-FEMALE = True
+from utils import *
 
 
 def fetch_string(message, default=None):
@@ -119,28 +116,8 @@ def create_tournaments():
         name = None
         while name is None:
             name = fetch_string("Enter a new tournament name")
-        difficulty = fetch_float("Enter the tournament difficulty", 1.0)
-        prizes = HashTable()
-        creating_prizes = fetch_boolean("Would you like to enter a prize?", True)
 
-        while creating_prizes:
-            rank = fetch_int("Enter rank for prize", 1)
-            overwrite = True
-
-            if prizes.find(rank) is not None:
-                print("A prize for rank " + str(rank) + " already exists")
-                overwrite = fetch_boolean("Do you wish to overwrite it?", False)
-
-            if overwrite:
-                prize = fetch_string("Enter the prize money to give", "1,000")
-                if prizes.insert(rank, prize) is not None:
-                    print("Successfully modified prize in " + name)
-                else:
-                    print("Successfully added a prize to " + name)
-
-            creating_prizes = fetch_boolean("Would you like to enter another prize?", True)
-
-        tournament = Tournament(name, prizes, difficulty)
+        tournament = Tournament(name, prizes=HashTable(), difficulty=1)
         tournaments.insert(name, tournament)
         print("Tournament " + name + " successfully created")
 
@@ -359,6 +336,28 @@ def play_tournament(tournament, players_by_name, ranking_points, ranked_players)
         print("There are no players in this tournament")
         return Tree(lambda a, b: b - a)
 
+    tournament.difficulty = fetch_float("Enter the tournament difficulty", 1.0)
+
+    if len(tournament.prizes) == 0:
+        creating_prizes = fetch_boolean("Are there prizes in this tournament?", True)
+
+        while creating_prizes:
+            rank = fetch_int("Enter rank for prize", 1)
+            overwrite = True
+
+            if tournament.prizes.find(rank) is not None:
+                print("A prize for rank " + str(rank) + " already exists")
+                overwrite = fetch_boolean("Do you wish to overwrite it?", False)
+
+            if overwrite:
+                prize = fetch_string("Enter the prize money to give", "1,000")
+                if tournament.prizes.insert(rank, prize) is not None:
+                    print("Successfully modified prize in " + tournament.name)
+                else:
+                    print("Successfully added a prize to " + tournament.name)
+
+            creating_prizes = fetch_boolean("Is there another prize in this tournament?", True)
+
     current_round = 1
     another_round = True
     sorted_players = Tree(lambda a, b: b - a)
@@ -372,8 +371,7 @@ def play_tournament(tournament, players_by_name, ranking_points, ranked_players)
             print("The score to win must be more than 0")
 
     while another_round:
-        print("Starting round " + str(current_round) + " of tournament " +
-              tournament.name)
+        print("\nStarting a new round of tournament " + tournament.name)
 
         another_game = True
 
@@ -416,67 +414,328 @@ def play_tournament(tournament, players_by_name, ranking_points, ranked_players)
     return sorted_players
 
 
-def run():
-    """Runs the stream solution program.
+def load_tournaments():
+    tournaments = HashTable()
+    with open("../output/stream/remaining_tournaments.csv", "r") as file:
+        for line in file:
+            values = parse_csv_line(line)
+            name = values[0]
+            prizes = HashTable()
+            difficulty = 1
+            tournament = Tournament(name, prizes, difficulty)
+            tournaments.insert(name, tournament)
+    return tournaments
 
-    :return: None
-    """
-    print("Solution - Stream")
-    print("Please create all tournaments in this circuit")
-    tournaments = create_tournaments()
-    print("Please enter all the male player names")
-    men_by_name = create_players(len(tournaments))
-    print("Please enter all the female player names")
-    women_by_name = create_players(len(tournaments))
-    print("Please enter all the ranking points")
-    ranking_points = create_ranking_points()
-    print("All properties of this circuit are complete")
-    print("Starting the circuit")
-    unfinished_tournaments = HashTable()
-    ranked_men = Tree(lambda a, b: b - a)
-    ranked_women = Tree(lambda a, b: b - a)
 
-    for tournament_name, tournament in tournaments:
-        unfinished_tournaments.insert(tournament_name, True)
+def load_players(file_name):
+    players = HashTable()
+    with open(file_name, "r") as file:
+        for line in file:
+            values = parse_csv_line(line)
+            name = values[0]
+            points = float(values[1])
+            player = Player(name)
+            player.ranking_points = points
+            players.insert(name, player)
+    return players
 
-    while len(unfinished_tournaments) > 0:
-        # Select the next tournament to play through.
-        tournament = fetch_next_tournament(tournaments, unfinished_tournaments)
-        print("Playing the tournament " + tournament.name)
 
-        # The tournament is no longer required to run.
-        unfinished_tournaments.delete(tournament.name)
+def load_ranking_points():
+    ranking_points = HashTable()
+    with open("../output/stream/ranking_points.csv", "r") as file:
+        for line in file:
+            values = parse_csv_line(line)
+            rank = int(values[0])
+            points = float(values[0])
+            ranking_points.insert(rank, points)
+    return ranking_points
 
-        # Get the next gender playing.
-        first_gender = fetch_gender("Are the men or the women playing first?", MALE)
 
-        if first_gender == MALE:
-            print("Men are now playing tournament " + tournament.name)
-            play_tournament(tournament, men_by_name, ranking_points, ranked_men)
-            print("Women are now playing tournament " + tournament.name)
-            play_tournament(tournament, women_by_name, ranking_points, ranked_women)
+def load_tournament_scores(tournament, players_by_name):
+    with open("../output/stream/scores.csv", "r") as file:
+        for line in file:
+            values = parse_csv_line(line)
+            name = values[0]
+            score = int(values[1])
+            player = players_by_name.find(name)
+            player.scores.insert(tournament.name, score)
+
+
+def persist_current_tournament(file_name, first_gender, first_gender_complete, tournament, tournament_complete):
+    prepare_persist(file_name)
+    with open(file_name, "a") as file:
+        file.write(tournament.name + "," + ("m" if first_gender == MALE else "f") + "," + str(first_gender_complete) +
+                   "," + str(tournament_complete))
+
+
+def persist_tournament_scores(file_name, players_by_name, tournament):
+    prepare_persist(file_name)
+    with open(file_name, "a") as file:
+        for name, player in players_by_name:
+            score = player.scores.find(tournament.name, 0)
+            file.write(name + "," + str(score) + "\n")
+
+
+def persist_circuit_points(file_name, players_by_name):
+    prepare_persist(file_name)
+    with open(file_name, "a") as file:
+        for name, player in players_by_name:
+            file.write(name + "," + str(player.ranking_points) + "\n")
+
+
+def persist_ranking_points(file_name, ranking_points):
+    prepare_persist(file_name)
+    with open(file_name, "a") as file:
+        for rank, points in ranking_points:
+            file.write(str(rank) + "," + str(points) + "\n")
+
+
+def persist_remaining_tournaments(file_name, remaining_tournaments):
+    prepare_persist(file_name)
+    with open(file_name, "a") as file:
+        for name, _ in remaining_tournaments:
+            file.write(name + "\n")
+
+
+class Circuit:
+    def __init__(self,
+                 tournaments=HashTable(),
+                 remaining_tournaments=HashTable(),
+                 ranking_points=HashTable(),
+                 men_by_name=HashTable(),
+                 women_by_name=HashTable(),
+                 ranked_men=Tree(lambda a, b: b - a),
+                 ranked_women=Tree(lambda a, b: b - a),
+                 active_tournament=None,
+                 active_tournament_complete=False,
+                 first_gender=MALE,
+                 first_gender_complete=False):
+        self.tournaments = tournaments
+        self.men_by_name = men_by_name
+        self.women_by_name = women_by_name
+        self.ranked_men = ranked_men
+        self.ranked_women = ranked_women
+        self.ranking_points = ranking_points
+        self.remaining_tournaments = remaining_tournaments
+        self.active_tournament = active_tournament
+        self.active_tournament_complete = active_tournament_complete
+        self.first_gender = first_gender
+        self.first_gender_complete = first_gender_complete
+
+    def run(self):
+        """Runs the stream solution program.
+
+        :return: None
+        """
+
+        print(HEADER + "STREAMED SOLUTION" + FOOTER)
+
+        load_previous_circuit = fetch_boolean("Do you wish to load circuit data from a previous session?", False)
+
+        if load_previous_circuit:
+            if self.load_previous_session():
+                return
+
+            print_circuit_start()
+
+            if not self.active_tournament_complete:
+                if self.continue_unfinished_game():
+                    return
         else:
-            print("Women are now playing tournament " + tournament.name)
-            play_tournament(tournament, women_by_name, ranking_points, ranked_women)
-            print("Men are now playing tournament " + tournament.name)
-            play_tournament(tournament, men_by_name, ranking_points, ranked_men)
+            self.fetch_new_session()
+            print_circuit_start()
 
+        self.active_tournament = None
+        self.first_gender = MALE
+        self.first_gender_complete = False
+
+        if self.run_circuit():
+            return
+
+        print(HEADER + "CIRCUIT COMPLETE" + FOOTER)
+        print_ranking_points(self.ranked_men, self.ranked_women)
+        self.save()
+
+    def run_circuit(self):
+        while len(self.remaining_tournaments) > 0:
+            try:
+                # Select the next tournament to play through.
+                self.active_tournament = fetch_next_tournament(self.tournaments, self.remaining_tournaments)
+                print("Playing the tournament " + self.active_tournament.name)
+
+                # Get the next gender playing.
+                self.first_gender = fetch_gender("Are the men or the women playing first?", MALE)
+                self.first_gender_complete = False
+
+                if self.first_gender == MALE:
+                    print("\nMen are now playing tournament " + self.active_tournament.name)
+                    play_tournament(self.active_tournament, self.men_by_name, self.ranking_points, self.ranked_men)
+                    self.first_gender_complete = True
+                    print("\nWomen are now playing tournament " + self.active_tournament.name)
+                    play_tournament(self.active_tournament, self.women_by_name, self.ranking_points, self.ranked_women)
+                else:
+                    print("\nWomen are now playing tournament " + self.active_tournament.name)
+                    play_tournament(self.active_tournament, self.women_by_name, self.ranking_points, self.ranked_women)
+                    self.first_gender_complete = True
+                    print("\nMen are now playing tournament " + self.active_tournament.name)
+                    play_tournament(self.active_tournament, self.men_by_name, self.ranking_points, self.ranked_men)
+
+                # The tournament is no longer required to run.
+                self.remaining_tournaments.delete(self.active_tournament.name)
+            except (EOFError, KeyboardInterrupt):
+                self.handle_interrupt()
+                return True
+        return False
+
+    def fetch_new_session(self):
+        print("Please create all tournaments in this circuit")
+        self.tournaments = create_tournaments()
+        print("Please enter all the male player names")
+        self.men_by_name = create_players(len(self.tournaments))
+        print("Please enter all the female player names")
+        self.women_by_name = create_players(len(self.tournaments))
+        print("Please enter all the ranking points")
+        self.ranking_points = create_ranking_points()
+        print("All properties of this circuit are complete")
+        for tournament_name, tournament in self.tournaments:
+            self.remaining_tournaments.insert(tournament_name, True)
+
+        for name, profile in self.men_by_name:
+            self.ranked_men.insert(profile.ranking_points, profile)
+
+        for name, profile in self.women_by_name:
+            self.ranked_women.insert(profile.ranking_points, profile)
+
+    def continue_unfinished_game(self):
+        try:
+            print("Playing the tournament " + self.active_tournament.name)
+
+            # Load the scores for the current tournament.
+            load_tournament_scores(self.active_tournament,
+                                   self.men_by_name if (self.first_gender == MALE) ^ self.first_gender_complete else
+                                   self.women_by_name)
+
+            if self.first_gender == MALE:
+                if not self.first_gender_complete:
+                    print("\nMen are now playing tournament " + self.active_tournament.name)
+                    play_tournament(self.active_tournament, self.men_by_name, self.ranking_points, self.ranked_men)
+                self.first_gender_complete = True
+                print("\nWomen are now playing tournament " + self.active_tournament.name)
+                play_tournament(self.active_tournament, self.women_by_name, self.ranking_points, self.ranked_women)
+            else:
+                if not self.first_gender_complete:
+                    print("\nWomen are now playing tournament " + self.active_tournament.name)
+                    play_tournament(self.active_tournament, self.women_by_name, self.ranking_points, self.ranked_women)
+                self.first_gender_complete = True
+                print("\nMen are now playing tournament " + self.active_tournament.name)
+                play_tournament(self.active_tournament, self.men_by_name, self.ranking_points, self.ranked_men)
+
+            # The tournament is no longer required to run.
+            self.remaining_tournaments.delete(self.active_tournament.name)
+            self.active_tournament_complete = True
+        except (EOFError, KeyboardInterrupt):
+            self.handle_interrupt()
+            return True
+        return False
+
+    def load_previous_session(self):
+        # noinspection PyBroadException
+        try:
+            self.tournaments = load_tournaments()
+            self.men_by_name = load_players("../output/stream/ranked_men.csv")
+            self.women_by_name = load_players("../output/stream/ranked_women.csv")
+            self.ranking_points = load_ranking_points()
+
+            for name, profile in self.men_by_name:
+                self.ranked_men.insert(profile.ranking_points, profile)
+
+            for name, profile in self.women_by_name:
+                self.ranked_women.insert(profile.ranking_points, profile)
+
+            for tournament_name, tournament in self.tournaments:
+                self.remaining_tournaments.insert(tournament_name, True)
+
+            if len(self.remaining_tournaments) == 0:
+                print(HEADER + "CIRCUIT COMPLETE" + FOOTER)
+                print_ranking_points(self.ranked_men, self.ranked_women)
+                return True
+
+            with open("../output/stream/current_tournament.csv") as file:
+                line = file.readline()
+                values = parse_csv_line(line)
+                self.active_tournament = self.tournaments.find(values[0])
+                self.first_gender = MALE if values[1].lower().startswith("m") else FEMALE
+                self.first_gender_complete = values[2] == "True"
+                self.active_tournament_complete = values[3] == "True"
+
+            if self.active_tournament_complete:
+                self.remaining_tournaments.delete(self.active_tournament.name)
+
+        except Exception as exception:
+            print("Failed to load circuit data for previous session.")
+            print("This is probably due to there not being a previous session, or the saved data was corrupt.")
+            print(exception)
+            return True
+        return False
+
+    def handle_interrupt(self):
+        while True:
+            try:
+                if self.active_tournament is None:
+                    print(HEADER + "CIRCUIT COMPLETE" + FOOTER)
+                    print_ranking_points(self.ranked_men, self.ranked_women)
+                    break
+
+                print(HEADER + "CIRCUIT INTERRUPTED" + FOOTER)
+                self.save()
+                print_ranking_points(self.ranked_men, self.ranked_women)
+                break
+            except KeyboardInterrupt:
+                print("Received keyboard interrupt, retrying")
+                continue
+
+    def save(self):
+        print("\nSaving progress...")
+        base_directory = "../output/stream/"
+        current_tournament_csv = base_directory + "current_tournament.csv"
+        ranked_men_csv = base_directory + "ranked_men.csv"
+        ranked_women_csv = base_directory + "ranked_women.csv"
+        ranking_points_csv = base_directory + "ranking_points.csv"
+        remaining_tournaments_csv = base_directory + "remaining_tournaments.csv"
+        tournament_scores_csv = base_directory + "scores.csv"
+        persist_current_tournament(current_tournament_csv, self.first_gender, self.first_gender_complete,
+                                   self.active_tournament, self.active_tournament_complete)
+        persist_circuit_points(ranked_men_csv, self.men_by_name)
+        persist_circuit_points(ranked_women_csv, self.women_by_name)
+        persist_ranking_points(ranking_points_csv, self.ranking_points)
+        persist_remaining_tournaments(remaining_tournaments_csv, self.remaining_tournaments)
+        players_by_name = self.men_by_name if (self.first_gender == MALE) ^ self.first_gender_complete \
+            else self.women_by_name
+        persist_tournament_scores(tournament_scores_csv, players_by_name, self.active_tournament)
+        print("Saving complete!\n")
+
+
+def print_circuit_start():
+    print(HEADER + "STARTING THE CIRCUIT" + FOOTER)
+    print("Press CTRL+C if you wish to pause and save the")
+    print("circuit progress for another day.\n")
+
+
+def print_ranking_points(ranked_men, ranked_women):
     # Print all players ordered by ranking points.
-    print("--------------------------------\n")
-    print("Total ranking points\n")
-    print("--------------------------------\n")
-
-    print("Men:")
-
+    print("Male ranking points:")
     for points, player in ranked_men:
         print(player.name + " " + str(points))
-
     print()
-    print("Women:")
-
+    print("Female ranking points:")
     for points, player in ranked_women:
         print(player.name + " " + str(points))
 
 
+def main():
+    circuit = Circuit()
+    circuit.run()
+
+
 if __name__ == '__main__':
-    run()
+    main()
