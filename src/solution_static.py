@@ -314,6 +314,12 @@ def run(tournaments, men_by_name, women_by_name, ranking_points, complete_tourna
 
 
 def print_ranked_players(men_by_name, women_by_name):
+    """Sort and print all ranked players.
+
+    :param men_by_name: The male players to print.
+    :param women_by_name: The female players to print.
+    :return: None
+    """
     # Sort all players by the overall circuit ranking points.
     male_sorter = Sorter(lambda a, b: b.ranking_points - a.ranking_points)
     female_sorter = Sorter(lambda a, b: b.ranking_points - a.ranking_points)
@@ -340,6 +346,12 @@ def print_ranked_players(men_by_name, women_by_name):
 
 
 def load_circuit_progress(file_name, complete_tournaments):
+    """Loads the circuit progress.
+
+    :param file_name: The file name to load from.
+    :param complete_tournaments: The hash table to load progress into.
+    :return: None
+    """
     if os.path.isfile(file_name):
         with open(file_name, "r") as file:
             for line in file:
@@ -349,6 +361,12 @@ def load_circuit_progress(file_name, complete_tournaments):
 
 
 def load_player_progress(file_name, players_by_name):
+    """Loads player progress from file.
+
+    :param file_name: The file name to load from.
+    :param players_by_name: The players hash table to load data into.
+    :return: None
+    """
     if os.path.isfile(file_name):
         with open(file_name, "r") as file:
             for line in file:
@@ -365,6 +383,12 @@ def load_player_progress(file_name, players_by_name):
 
 
 def persist_tournaments(file_name, complete_tournaments):
+    """Persists all tournaments to file.
+
+    :param file_name: The file name to persist to.
+    :param complete_tournaments: The complete tournaments.
+    :return: None
+    """
     prepare_persist(file_name)
     with open(file_name, "a") as file:
         for name, _ in complete_tournaments:
@@ -372,6 +396,12 @@ def persist_tournaments(file_name, complete_tournaments):
 
 
 def persist_players(file_name, players_by_name):
+    """Persists all players to file.
+
+    :param file_name: The file name to save to.
+    :param players_by_name: The players to persist.
+    :return: None
+    """
     prepare_persist(file_name)
     with open(file_name, "a") as file:
         for _, player in players_by_name:
@@ -381,6 +411,16 @@ def persist_players(file_name, players_by_name):
 def persist(complete_tournaments_file, complete_tournaments,
             male_progress_file, men_by_name,
             female_progress_file, women_by_name):
+    """Persists all completed tournaments state.
+
+    :param complete_tournaments_file: The file name to save completed tournaments to.
+    :param complete_tournaments: The tournaments completed.
+    :param male_progress_file: The file name to save the male progress to.
+    :param men_by_name: The male players.
+    :param female_progress_file: The file name to save the female progress to.
+    :param women_by_name: The female players.
+    :return: None
+    """
     print("Saving progress...")
     persist_tournaments(complete_tournaments_file, complete_tournaments)
     persist_players(male_progress_file, men_by_name)
@@ -391,6 +431,16 @@ def persist(complete_tournaments_file, complete_tournaments,
 def handle_interrupt(complete_tournaments, complete_tournaments_file,
                      female_progress_file, male_progress_file,
                      men_by_name, women_by_name):
+    """Handles a keyboard interrupt on score input.
+
+    :param complete_tournaments: The tournaments completed.
+    :param complete_tournaments_file: The file name to save completed tournaments to.
+    :param female_progress_file: The file name to save the female progress to.
+    :param male_progress_file: The file name to save the male progress to.
+    :param men_by_name: The male players.
+    :param women_by_name: The female players.
+    :return: True
+    """
     print(HEADER + "CIRCUIT INTERRUPTED" + FOOTER)
     print_ranked_players(men_by_name, women_by_name)
     persist(complete_tournaments_file, complete_tournaments,
@@ -400,6 +450,10 @@ def handle_interrupt(complete_tournaments, complete_tournaments_file,
 
 
 def main():
+    """Runs the static solution.
+
+    :return: None
+    """
     print(HEADER + "STATIC SOLUTION" + FOOTER)
 
     # Load tournaments and players from file. Retaining progress saved.
