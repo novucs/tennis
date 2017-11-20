@@ -127,6 +127,8 @@ possible to update the player scores and each of the leader boards become
 automatically updated and sorted.
 
 ## How to run
+Requires Python 3. This project was tested using Python 3.6.3.
+
 First, ensure you are in the source directory.
 `cd src`
 
