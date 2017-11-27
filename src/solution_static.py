@@ -245,6 +245,8 @@ def get_file_list(name):
     """
 
     print("Please enter a list of " + name + " files. Enter 'done' when finished.")
+    print("Two sample round files can be found in: \"../resources/round1_men.csv\" and "
+          "\"../resources/round1_ladies.csv\"")
     files = List()
 
     while True:
