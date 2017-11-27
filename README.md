@@ -136,6 +136,24 @@ deleting the programs relevant `output` sub-directory.
 ## How to run
 Requires Python 3. This project was tested using Python 3.6.3.
 
+Please unzip project before running.
+
+### Windows
+_Tested with computers provided in UWE Frenchay campus 3Q85_
+
+To run the static solution:
+
+Double click `RUN_STATIC_SOLUTION.bat`
+
+To run the stream solution:
+
+Double click `RUN_STREAMED_SOLUTION.bat`
+
+To reset the previous session data:
+
+Either delete output folder, or double click `CLEAN_PREVIOUS_SESSIONS.bat`
+
+### Linux
 First, ensure you are in the source directory:
 
 `cd src`
