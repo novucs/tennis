@@ -305,7 +305,7 @@ def play_game(tournament, sorted_players, players_by_name, max_score):
             continue
 
         old_score_a = player_a.scores.find(tournament.name, 0)
-        old_score_b = player_a.scores.find(tournament.name, 0)
+        old_score_b = player_b.scores.find(tournament.name, 0)
 
         score_a += old_score_a
         score_b += old_score_b
