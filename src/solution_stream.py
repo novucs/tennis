@@ -459,7 +459,7 @@ def load_ranking_points():
         for line in file:
             values = parse_csv_line(line)
             rank = int(values[0])
-            points = float(values[0])
+            points = float(values[1])
             ranking_points.insert(rank, points)
     return ranking_points
 
