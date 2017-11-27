@@ -8,7 +8,7 @@ closest in size.
 
 """
 
-import numpy as np
+# import numpy as np
 
 from linked_list import List
 from ranked_tree import Tree
@@ -139,7 +139,8 @@ class Sorter:
         :param run_b: The second run.
         :return: Both runs, A and B, merged.
         """
-        merged = np.empty(len(run_a) + len(run_b), dtype=object)
+        # merged = np.empty(len(run_a) + len(run_b), dtype=object)
+        merged = [None] * (len(run_a) + len(run_b))
         iterator_a = iter(run_a)
         iterator_b = iter(run_b)
         element_a = next(iterator_a, None)

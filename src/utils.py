@@ -8,7 +8,7 @@ General utilities used by both tennis player ranking solutions.
 
 import os
 
-import numpy as np
+# import numpy as np
 
 from linked_list import List
 
@@ -29,7 +29,8 @@ def parse_csv_line(line):
     """
 
     if line == "":
-        return np.empty(0)
+        # return np.empty(0)
+        return []
 
     values = List()
     value = ""

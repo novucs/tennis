@@ -6,7 +6,7 @@ A hash table with linked list buckets.
 
 """
 
-import numpy as np
+# import numpy as np
 
 from linked_list import List
 
@@ -45,7 +45,8 @@ class HashTable:
     """
 
     def __init__(self, initial_capacity=10):
-        self._table = np.empty(initial_capacity, dtype=object)
+        # self._table = np.empty(initial_capacity, dtype=object)
+        self._table = [None] * initial_capacity
 
         for i in range(0, initial_capacity):
             self._table[i] = List()
@@ -65,7 +66,8 @@ class HashTable:
         return self.insert(key, value)
 
     def __iter__(self):
-        for i in range(0, self._table.size):
+        for i in range(0, len(self._table)):
+            # noinspection PyTypeChecker
             for node in self._table[i]:
                 yield (node.key, node.value)
 
@@ -88,7 +90,7 @@ class HashTable:
         if self._size == 0:
             return default
 
-        code = hash(key) % self._table.size
+        code = hash(key) % len(self._table)
         node = self._table[code].find(key)
 
         if node is None:
@@ -107,7 +109,7 @@ class HashTable:
         self.__ensure_capacity(self._size + 1)
 
         node = Node(key, value)
-        code = hash(key) % self._table.size
+        code = hash(key) % len(self._table)
         old_node = self._table[code].replace(node)
 
         if old_node is not None:
@@ -126,7 +128,7 @@ class HashTable:
         if self._size == 0:
             return False
 
-        code = hash(key) % self._table.size
+        code = hash(key) % len(self._table)
         old_node = self._table[code].delete(key)
 
         if old_node is None:
@@ -142,16 +144,17 @@ class HashTable:
         :param min_capacity: The minimum capacity required of the table.
         :return: None
         """
-        if self._table.size >= min_capacity:
+        if len(self._table) >= min_capacity:
             return
 
         old_table = self._table
-        new_capacity = int((self._table.size * 3) / 2) + 1
+        new_capacity = int((len(self._table) * 3) / 2) + 1
 
         if new_capacity < min_capacity:
             new_capacity = min_capacity
 
-        self._table = np.empty(new_capacity, dtype=object)
+        # self._table = np.empty(new_capacity, dtype=object)
+        self._table = [None] * new_capacity
 
         for i in range(0, new_capacity):
             self._table[i] = List()

@@ -6,7 +6,7 @@ A doubly-linked list.
 
 """
 
-import numpy as np
+# import numpy as np
 
 
 class Node:
@@ -221,7 +221,8 @@ class List:
         :return: The newly created array.
         """
         iterator = iter(self)
-        target_array = np.empty(self._size, dtype=object)
+        # target_array = np.empty(self._size, dtype=object)
+        target_array = [None] * self._size
 
         for i in range(0, self._size):
             target_array[i] = next(iterator)
