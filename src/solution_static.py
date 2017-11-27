@@ -167,8 +167,8 @@ def load_round_file(file_name, tournament_name, players_by_name, gender):
             player_b = players_by_name[player_b_name]
 
             if player_a is None or player_b is None:
-                raise ValueError("A player in this round does not exist in "
-                                 "this tournament")
+                raise ValueError("A player in this round does not exist in this tournament. Could you have input the "
+                                 "wrong round file? e.g. Did you use a men's round file instead of women's?")
 
             if (gender == MALE and player_a_score == 3 and player_b_score == 3) or \
                     (gender == FEMALE and player_a_score == 2 and player_b_score == 2):
