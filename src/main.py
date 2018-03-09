@@ -1,7 +1,7 @@
 import sys
 
 from hash_table import HashTable
-from utils import load_tournaments
+from utils import load_circuit
 
 HELP_MESSAGE = '''
 === TENNIS HELP ===
@@ -55,6 +55,7 @@ class Tournament:
                ", prizes=" + str(self.prizes) + \
                ", difficulty=" + str(self.difficulty) + "}"
 
+
 class Circuit:
     def __init__(self):
         self.running = True
@@ -79,7 +80,6 @@ class Circuit:
 
     def quit(self):
         self.running = False
-
 
 
 class CommandExecutor:
@@ -125,8 +125,6 @@ class CommandExecutor:
             print("No such tournament exists.")
             return
 
-
-
     def stats(self, args):
         pass
 
@@ -134,7 +132,6 @@ class CommandExecutor:
 class Season:
     def __init__(self, name):
         self.complete_tournaments = HashTable()
-
 
 
 def main():
