@@ -137,7 +137,7 @@ def load_ranking_points_file(file_name):
 
 
 def load_round_file(file_name, tournament_name, players_by_name, gender):
-    """Loads a round from file and updates each players scores.
+    """Loads a round from file and updates each players stats.
 
     :param file_name: The file name.
     :param tournament_name: The name of the tournament.
@@ -464,7 +464,7 @@ def main():
     female_players_file = get_file("female players", "../resources/female_players.csv")
     ranking_points_file = get_file("ranking points", "../resources/ranking_points.csv")
     complete_tournaments_file = "../output/static/tournaments.csv"
-    male_progress_file = "../output/static/men.csv"
+    male_progress_file = "../output/static/stats.csv"
     female_progress_file = "../output/static/women.csv"
 
     tournaments = load_tournaments_file(tournaments_file)

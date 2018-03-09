@@ -465,13 +465,13 @@ def load_ranking_points():
 
 
 def load_tournament_scores(tournament, players_by_name):
-    """Loads tournament scores from file.
+    """Loads tournament stats from file.
 
     :param tournament: The tournament.
     :param players_by_name: The players.
     :return: None
     """
-    with open("../output/stream/scores.csv", "r") as file:
+    with open("../output/stream/stats.csv", "r") as file:
         for line in file:
             values = parse_csv_line(line)
             name = values[0]
@@ -498,7 +498,7 @@ def persist_current_tournament(file_name, first_gender, first_gender_complete, t
 
 
 def persist_tournament_scores(file_name, players_by_name, tournament):
-    """Saves tournament scores to file.
+    """Saves tournament stats to file.
 
     :param file_name: The file name.
     :param players_by_name: The players.
@@ -682,7 +682,7 @@ class Circuit:
         try:
             print("Playing the tournament " + self.active_tournament.name)
 
-            # Load the scores for the current tournament.
+            # Load the stats for the current tournament.
             load_tournament_scores(self.active_tournament,
                                    self.men_by_name if (self.first_gender == MALE) ^ self.first_gender_complete else
                                    self.women_by_name)
@@ -786,7 +786,7 @@ class Circuit:
         ranked_women_csv = base_directory + "ranked_women.csv"
         ranking_points_csv = base_directory + "ranking_points.csv"
         remaining_tournaments_csv = base_directory + "remaining_tournaments.csv"
-        tournament_scores_csv = base_directory + "scores.csv"
+        tournament_scores_csv = base_directory + "stats.csv"
         persist_current_tournament(current_tournament_csv, self.first_gender, self.first_gender_complete,
                                    self.active_tournament, self.active_tournament_complete)
         persist_circuit_points(ranked_men_csv, self.men_by_name)

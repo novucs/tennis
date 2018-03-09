@@ -7,6 +7,7 @@ Represents a tennis player.
 """
 
 from hash_table import HashTable
+from utils import TOURNAMENT_COUNT
 
 
 class Player:
@@ -14,13 +15,13 @@ class Player:
 
     Attributes:
         name: The name of the player.
-        scores: The players scores, indexed by the tournament name.
+        scores: The players stats, indexed by the tournament name.
     """
 
-    def __init__(self, name, tournament_count=4):
+    def __init__(self, name):
         self.name = name
         self.ranking_points = 0
-        self.scores = HashTable(initial_capacity=tournament_count)
+        self.scores = HashTable(initial_capacity=TOURNAMENT_COUNT)
 
     def __str__(self):
         return "{name=" + self.name + ", score=" + str(self.scores) + "}"
