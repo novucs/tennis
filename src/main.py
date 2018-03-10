@@ -331,7 +331,7 @@ def load_round(file_name, injure_win_score, injure_loss_score):
             score_a = int(csv[1])
             player_b = csv[2]
             score_b = int(csv[3])
-            match = Match(player_a, score_a, player_b, score_b, injure_win_score, injure_loss_score)
+            match = Match(injure_win_score, injure_loss_score, player_a, score_a, player_b, score_b)
             matches.append(match)
     return matches
 
@@ -464,7 +464,7 @@ class CircuitStats:
 
 
 class SeasonStats:
-    def __init__(self, player, circuit: CircuitStats, points=0, wins=0, losses=0, scores=HashTable(),
+    def __init__(self, player, circuit: CircuitStats, points=0.0, wins=0, losses=0, scores=HashTable(),
                  tournament_stats=HashTable()):
         self.player = player
         self.circuit = circuit
@@ -476,7 +476,7 @@ class SeasonStats:
 
 
 class TournamentStats:
-    def __init__(self, player, season: SeasonStats, round_achieved=1, multiplier=1.0, points=0, wins=0, losses=0,
+    def __init__(self, player, season: SeasonStats, round_achieved=1, multiplier=1.0, points=0.0, wins=0, losses=0,
                  scores=HashTable()):
         self.player = player
         self.season = season
@@ -661,66 +661,82 @@ class Tournament:
 
         input_type = next_input_type("How should data be entered?")
         winning_score = 3
+        injure_win_score = 3
+        injure_loss_score = 2
+        winners = HashTable()
+        winner = None
+        matches = List()
 
         if input_type == FILE:
             # Get the file to load the round data from.
-            default_round_file = "../resources/%s/%s/men/round_%d.csv" % (
-                self.season.name, self.type.name.lower(), self.men_round)
+            default_round_file = "../resources/%s/%s/men/round_%d.csv" % \
+                                 (self.season.name, self.type.name.lower(), self.men_round)
             round_file = next_string("Enter file for round %d" % self.men_round, default_round_file)
-
-            winners = HashTable()
-            winner = None
-
-            # Run each match.
-            for match in load_round(round_file, 3, 2):
-                # Find the winner and add them to the next batch.
-                winner, winner_score, loser, loser_score = match.run(winning_score, self.remaining_men_stats)
-                winners.insert(winner.player.name, winner)
-
-                # Update the winner profile.
-                winner.win()
-                winner.add_score(winner_score, loser_score)
-
-                # Update the loser profile.
-                loser.loss()
-                loser.add_score(loser_score, winner_score)
-
-            if self.men_round == MAX_ROUNDS:
-                print("Tournament %s successfully complete for the male track" % self.type.name)
-                print("Winner: %s" % winner.player.name)
-                self.men_round += 1
-                return
-
-            print("Winners for round %d:" % self.men_round)
-
-            for name, stats in winners:
-                print("- %s" % name)
-
-            self.remaining_men_stats = winners
-            self.men_round += 1
-
+            matches = load_round(round_file, injure_win_score, injure_loss_score)
         else:
-            # TODO: Implement typed input.
-            pass
+            match_count = int(math.pow(2, MAX_ROUNDS - self.men_round))
+
+            for i in range(0, match_count):
+                match = Match(injure_win_score, injure_loss_score)
+                matches.append(match)
+
+        # Run each match.
+        for match in matches:
+            # Find the winner and add them to the next batch.
+            winner, winner_score, loser, loser_score = match.run(winning_score, self.remaining_men_stats)
+            winners.insert(winner.player.name, winner)
+
+            # Update the winner profile.
+            winner.win()
+            winner.add_score(winner_score, loser_score)
+
+            # Update the loser profile.
+            loser.loss()
+            loser.add_score(loser_score, winner_score)
+
+        if self.men_round == MAX_ROUNDS:
+            print("Tournament %s successfully complete for the male track" % self.type.name)
+            print("Winner: %s" % winner.player.name)
+            self.men_round += 1
+            return
+
+        print("Winners for round %d:" % self.men_round)
+
+        for name, stats in winners:
+            print("- %s" % name)
+
+        self.remaining_men_stats = winners
+        self.men_round += 1
 
 
 class Match:
-    def __init__(self, player_a, score_a, player_b, score_b, injure_win_score, injure_loss_score):
+    def __init__(self, injure_win_score, injure_loss_score, player_a=None, score_a=None, player_b=None, score_b=None):
+        self.injure_win_score = injure_win_score
+        self.injure_loss_score = injure_loss_score
         self.player_name_a = player_a
         self.score_a = score_a
         self.player_name_b = player_b
         self.score_b = score_b
-        self.injure_win_score = injure_win_score
-        self.injure_loss_score = injure_loss_score
 
     def run(self, winning_score, player_stats: HashTable):
-        # Validate players, both must still be able to play this round.
-        self.player_name_a = self.validate_player(self.player_name_a, player_stats)
-        # Prevent players playing any more matches this round, and load their
-        # relevant tournament stats for returning later.
-        player_stats_a = player_stats.delete(self.player_name_a)
-        self.player_name_b = self.validate_player(self.player_name_b, player_stats)
-        player_stats_b = player_stats.delete(self.player_name_b)
+        if self.player_name_a is not None:
+            # Validate players, both must still be able to play this round.
+            self.player_name_a = self.validate_player(self.player_name_a, player_stats)
+            # Prevent players playing any more matches this round, and load their
+            # relevant tournament stats for returning later.
+            player_stats_a = player_stats.delete(self.player_name_a)
+            self.player_name_b = self.validate_player(self.player_name_b, player_stats)
+            player_stats_b = player_stats.delete(self.player_name_b)
+        else:
+            self.player_name_a = next_string("Enter player A")
+            self.player_name_a = self.validate_player(self.player_name_a, player_stats)
+            player_stats_a = player_stats.delete(self.player_name_a)
+            self.score_a = next_int("Enter score A")
+
+            self.player_name_b = next_string("Enter player B")
+            self.player_name_b = self.validate_player(self.player_name_b, player_stats)
+            player_stats_b = player_stats.delete(self.player_name_b)
+            self.score_b = next_int("Enter Score B")
 
         # Validate scores:
         # - Only one may be a winner.
@@ -741,8 +757,7 @@ class Match:
 
             if self.score_a == winning_score and self.score_b == winning_score:
                 print("Both players cannot be winners")
-                self.score_a = self.next_score(self.player_name_a, winning_score)
-                self.score_b = self.next_score(self.player_name_b, winning_score)
+                self.next_scores(winning_score)
                 continue
 
             if self.score_a == winning_score or self.score_b == winning_score:
@@ -765,17 +780,27 @@ class Match:
                 return
 
             print("Please re-enter the scores so they are complete")
-            self.score_a = self.next_score(self.player_name_a, winning_score)
-            self.score_b = self.next_score(self.player_name_b, winning_score)
+            self.next_scores(winning_score)
 
-    def next_score(self, player_name, winning_score):
-        score = next_int("Enter score for player %s" % player_name)
-        return self.validate_score(score, winning_score)
+    def next_scores(self, winning_score):
+        self.score_a = self.next_score(self.player_name_a)
+        self.score_a = self.validate_score(self.score_a, winning_score)
+        self.score_b = self.next_score(self.player_name_b)
+        self.score_b = self.validate_score(self.score_b, winning_score)
 
     @staticmethod
-    def validate_score(score, winning_score):
+    def next_score(player_name):
+        return next_int("Enter score for player %s" % player_name)
+
+    def validate_score(self, score, winning_score):
+        if score > winning_score or score < 0:
+            message = "Invalid score for round %s with %d, vs %s with %d. Culprit: %d" % \
+                      (self.player_name_a, self.score_a, self.player_name_b, self.score_b, score)
+            print(message)
+
         while score > winning_score or score < 0:
-            score = next_int("Invalid score entered. Score must be between 0 and %d, try again" % winning_score)
+            score = next_int("Score must be between 0 and %d, try again" % winning_score)
+
         return score
 
     @staticmethod
