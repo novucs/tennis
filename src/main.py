@@ -647,11 +647,18 @@ class Tournament:
         self.remaining_women_stats = women_stats.clone()
 
     def run(self):
-        while True:
+        running = True
+
+        while running:
             gender = next_gender("Select the track to play for the next round")
             self.play_male_track(gender)
+            running = next_bool("Would you like to start the next round?", True)
 
     def play_male_track(self, gender):
+        if self.men_round > MAX_ROUNDS:
+            print("This track is already complete")
+            return
+
         input_type = next_input_type("How should data be entered?")
         winning_score = 3
 
@@ -681,6 +688,7 @@ class Tournament:
             if self.men_round == MAX_ROUNDS:
                 print("Tournament %s successfully complete for the male track" % self.type.name)
                 print("Winner: %s" % winner.player.name)
+                self.men_round += 1
                 return
 
             print("Winners for round %d:" % self.men_round)
