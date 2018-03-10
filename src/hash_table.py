@@ -137,6 +137,16 @@ class HashTable:
             self._size -= 1
             return old_node.value
 
+    def clone(self):
+        """Shallow-clones the hash table.
+
+        :return: The newly cloned hash table.
+        """
+        target = HashTable(self._size)
+        for key, value in self:
+            target.insert(key, value)
+        return target
+
     def __ensure_capacity(self, min_capacity):
         """Ensures the number of possible positions in the hash table is at
         least as much as the number of nodes in the table.

@@ -1,8 +1,15 @@
+import math
 import sys
 
-from hash_table import HashTable
-from utils import load_circuit
+from utils import *
 
+MALE = False
+FEMALE = True
+FILE = True
+TYPED = False
+MAX_PLAYERS = 32
+MAX_ROUNDS = math.log(MAX_PLAYERS, 2)
+TOURNAMENT_COUNT = 4
 HELP_MESSAGE = '''
 === TENNIS HELP ===
 
@@ -30,47 +37,496 @@ Gets total number of times a player lost in a tournament, season, or overall.
 ===================
 '''
 
+OUTPUT = "../output"
+RESOURCES = "../resources"
+TOURNAMENTS_FILE = "%s/tournaments.csv" % RESOURCES
+MEN_FILE = "%s/stats.csv" % RESOURCES
+WOMEN_FILE = "%s/women.csv" % RESOURCES
+RANKING_POINTS_FILE = "%s/ranking_points.csv" % RESOURCES
 
-class Round:
-    def __init__(self, tournament):
-        self.tournament = tournament
 
+def parse_csv_line(line):
+    """Parses a CSV (comma separated values) line.
 
-class Tournament:
-    """A tennis tournament profile.
-
-    Attributes:
-        name: The name of the tournament.
-        prizes: A hash table of prizes, keys being the place in the tournament.
-        difficulty: The difficulty rating of this tournament.
+    :param line: The line to parse.
+    :return: The array of values in this line.
     """
 
-    def __init__(self, name, prizes, difficulty):
+    if line == "":
+        # return np.empty(0)
+        return []
+
+    values = List()
+    value = ""
+    quotes = False
+
+    for character in line:
+        if character == '\n':
+            break
+        elif character == '"':
+            quotes = not quotes
+        elif not quotes and character == ',':
+            values.append(value)
+            value = ""
+        else:
+            value += character
+
+    values.append(value)
+    return values.to_array()
+
+
+def handle_duplicates(file_name, previous_lines, line):
+    """Handles duplicate entries found in files.
+
+    :param file_name: The file name.
+    :param previous_lines: The hash table of all previous found lines.
+    :param line: The current line read in.
+    :return: True if a duplicate was found otherwise false.
+    """
+
+    if previous_lines[line]:
+        print("Skipping duplicate line found in " + file_name)
+        print(line)
+        return True
+
+    previous_lines[line] = True
+    return False
+
+
+#####################################################################
+#                                                                   #
+#                       PLAYER STATS LOADING                        #
+#                                                                   #
+#####################################################################
+
+def load_scores(text):
+    scores = HashTable()
+    for score in text.split(","):
+        data = score.split(":")
+        scores.insert((int(data[0]), int(data[1])), int(data[2]))
+    return scores
+
+
+def load_tournament_player_stats(tournament, gender, season_player_stats, tournament_player_stats,
+                                 tournament_remaining_player_stats, active_round):
+    with open("%s/%s/%s/%s.csv" % (OUTPUT, tournament.season.name, tournament.type.name, gender)) as the_file:
+        for line in the_file:
+            # Parse player stats.
+            csv = parse_csv_line(line)
+            player_name = csv[0]
+            round_achieved = int(csv[1])
+            multiplier = float(csv[2])
+            points = float(csv[3])
+            wins = int(csv[4])
+            losses = int(csv[5])
+            scores = load_scores(csv[6])
+
+            # Create the players' tournament stats profile.
+            season_stats: SeasonStats = season_player_stats.find(player_name)
+            tournament_stats = TournamentStats(season_stats.player, season_stats, round_achieved, multiplier,
+                                               points, wins, losses, scores)
+
+            # Add this profile to the tournament players.
+            tournament_player_stats.insert(player_name, tournament_stats)
+
+            if not tournament.complete and active_round <= round_achieved:
+                tournament_remaining_player_stats.insert(player_name, tournament_stats)
+
+
+def load_tournament(tournament):
+    load_tournament_player_stats(tournament, "men", tournament.season.men_stats, tournament.men_stats,
+                                 tournament.remaining_men_stats, tournament.men_round)
+    load_tournament_player_stats(tournament, "women", tournament.season.women_stats, tournament.women_stats,
+                                 tournament.remaining_women_stats, tournament.women_round)
+
+
+def load_season_player_stats(season, gender, circuit_players, season_player_stats):
+    with open("%s/%s/%s.csv" % (OUTPUT, season.name, gender)) as the_file:
+        for line in the_file:
+            # Parse player stats.
+            csv = parse_csv_line(line)
+            player_name = csv[0]
+            points = float(csv[1])
+            wins = int(csv[2])
+            losses = int(csv[3])
+            scores = load_scores(csv[4])
+
+            # Create the players' season stats profile.
+            circuit_stats = circuit_players.find(player_name)
+            season_stats = SeasonStats(circuit_stats.player, circuit_stats, points, wins, losses, scores)
+
+            # Add this profile to the season players.
+            season_player_stats.insert(player_name, season_stats)
+
+
+def load_season(season):
+    load_season_player_stats(season, "men", season.circuit.men, season.men_stats)
+    load_season_player_stats(season, "women", season.circuit.women, season.women_stats)
+
+    # Load the progress of this season.
+    with open("%s/%s/progress.csv" % (OUTPUT, season.name)) as the_file:
+        for line in the_file:
+            # Parse the seasons name and whether it's complete.
+            csv = parse_csv_line(line)
+            name = csv[0]
+            complete = bool(csv[1])
+            men_round = int(csv[2])
+            women_round = int(csv[3])
+            tournament_type = season.circuit.tournament_types.find(name)
+
+            # Find the previous seasons tournament, if there is any.
+            previous = None
+
+            if season.previous is not None:
+                previous = season.previous.tournaments.find(name)
+
+            # Create and load the tournament.
+            tournament = Tournament(tournament_type, season, previous, complete, men_round, women_round)
+            load_tournament(tournament)
+
+            # Add newly created tournament to this season.
+            season.tournaments.insert(tournament.type.name, tournament)
+
+
+def load_circuit_players(gender, players):
+    player_data_file = "%s/%s.csv" % (RESOURCES, gender)
+    player_stats_file = "%s/%s.csv" % (OUTPUT, gender)
+
+    with open(player_data_file, "r") as the_file:
+        previous_lines = HashTable()
+
+        for line in the_file:
+            if handle_duplicates(player_data_file, previous_lines, line):
+                continue
+
+            values = parse_csv_line(line)
+            name = values[0]
+            player = Player(name)
+            stats = CircuitStats(player)
+            player.stats = stats
+            players.insert(name, player)
+
+    if not os.path.isfile(player_stats_file):
+        return
+
+    with open(player_stats_file, "r") as the_file:
+        for line in the_file:
+            # Parse the players' circuit stats.
+            csv = parse_csv_line(line)
+            name = csv[0]
+            wins = csv[1]
+            losses = csv[2]
+            scores = load_scores(csv[3])
+
+            # Create the players circuit stats profile.
+            player = players.find(name)
+            player.stats.wins = wins
+            player.stats.losses = losses
+            player.stats.scores = scores
+
+
+def load_tournament_types(tournaments):
+    with open(TOURNAMENTS_FILE, "r") as the_file:
+        header = True
+        first_entry = True
+        current_name = ""
+        current_difficulty = 0
+        prizes = HashTable()
+        previous_lines = HashTable()
+
+        for line in the_file:
+            if handle_duplicates(TOURNAMENTS_FILE, previous_lines, line):
+                continue
+
+            if header:
+                header = False
+                continue
+
+            values = parse_csv_line(line)
+            name = values[0]
+            place = int(values[1])
+            prize = values[2]
+            difficulty = values[3]
+
+            if len(name) > 0:
+                if first_entry:
+                    current_name = name
+                    current_difficulty = float(difficulty)
+                    first_entry = False
+                else:
+                    tournament = TournamentType(current_name, prizes, current_difficulty)
+                    tournaments.insert(current_name, tournament)
+                    current_name = name
+                    prizes = HashTable()
+
+            prizes.insert(place, prize)
+
+    tournament = TournamentType(current_name, prizes, current_difficulty)
+    tournaments.insert(current_name, tournament)
+
+
+def load_ranking_points(ranking_points):
+    with open(RANKING_POINTS_FILE, "r") as the_file:
+        header = True
+        previous_lines = HashTable()
+
+        for line in the_file:
+            if handle_duplicates(RANKING_POINTS_FILE, previous_lines, line):
+                continue
+
+            if header:
+                header = False
+                continue
+
+            values = parse_csv_line(line)
+            points = int(values[0])
+            rank = int(values[1])
+            ranking_points.insert(rank, points)
+
+
+def load_circuit():
+    circuit = Circuit()
+
+    load_tournament_types(circuit.tournament_types)
+    load_ranking_points(circuit.ranking_points)
+    load_circuit_players("men", circuit.men)
+    load_circuit_players("women", circuit.women)
+
+    circuit_progress_file = "%s/progress.csv" % OUTPUT
+
+    if not os.path.isfile(circuit_progress_file):
+        return circuit
+
+    with open(circuit_progress_file, "r") as the_file:
+        for line in the_file:
+            csv = parse_csv_line(line)
+            name = csv[0]
+            complete = bool(csv[1])
+
+            previous = circuit.current_season
+            season = Season(circuit, previous, name, complete)
+            load_season(season)
+            circuit.current_season = season
+            circuit.seasons.insert(name, season)
+
+    return circuit
+
+
+def load_round(file_name, injure_win_score, injure_loss_score):
+    matches = List()
+    with open(file_name, "r") as the_file:
+        header = True
+        previous_lines = HashTable()
+
+        for line in the_file:
+            if handle_duplicates(file_name, previous_lines, line):
+                continue
+
+            if header:
+                header = False
+                continue
+
+            csv = parse_csv_line(line)
+            player_a = csv[0]
+            score_a = int(csv[1])
+            player_b = csv[2]
+            score_b = int(csv[3])
+            match = Match(player_a, score_a, player_b, score_b, injure_win_score, injure_loss_score)
+            matches.append(match)
+    return matches
+
+
+def next_string(message, default=None):
+    """Fetches a string from the user.
+
+    :param message: The message to prompt the user.
+    :param default: The default value.
+    :return: The user input string.
+    """
+
+    while True:
+        if default is None:
+            user_input = input(message + ": ")
+        else:
+            user_input = input(message + " (" + default + "): ")
+
+        if user_input == "":
+            return default
+        else:
+            return user_input
+
+
+def next_bool(message, default=None):
+    """Fetches a boolean from the user.
+
+    :param message: The message to prompt the user.
+    :param default: The default value.
+    :return: The user input boolean.
+    """
+
+    while True:
+        default_text = "Y/n" if default else "y/N"
+        user_input = next_string(message, default_text)
+
+        if user_input == default_text:
+            return default
+
+        parsed = user_input.lower()
+
+        if parsed.startswith("y") or parsed.startswith("t"):
+            return True
+        elif parsed.startswith("n") or parsed.startswith("f"):
+            return False
+
+
+def next_int(message, default=None):
+    """Fetches an int from the user.
+
+    :param message: The message to prompt the user.
+    :param default: The default value.
+    :return: The user input int.
+    """
+
+    while True:
+        default_text = None if default is None else str(default)
+        user_input = next_string(message, default_text)
+
+        if user_input is not None:
+            try:
+                parsed = int(user_input)
+                return parsed
+            except ValueError:
+                pass
+
+
+def next_float(message, default=None):
+    """Fetches a float from the user.
+
+    :param message: The message to prompt the user.
+    :param default: The default value.
+    :return: The user input float.
+    """
+
+    while True:
+        default_text = None if default is None else str(default)
+        user_input = next_string(message, default_text)
+
+        if user_input is not None:
+            try:
+                parsed = float(user_input)
+                return parsed
+            except ValueError:
+                pass
+
+
+def next_gender(message, default=None):
+    """Fetches a gender from user input.
+
+    :param message: The message to prompt the user.
+    :param default: The default value.
+    :return: The user submitted gender.
+    """
+
+    while True:
+        default_text = "m/F" if default else "M/f"
+        user_input = next_string(message, default_text)
+
+        if user_input is not None:
+            parsed = user_input.lower()
+
+            if parsed.startswith("f"):
+                return FEMALE
+            elif parsed.startswith("m"):
+                return MALE
+
+
+def next_input_type(message, default: bool = None):
+    while True:
+        default_text = "file/TYPED" if default else "FILE/typed"
+        user_input = next_string(message, default_text)
+
+        if user_input is not None:
+            parsed = user_input.lower()
+
+            if parsed.startswith("f"):
+                return FILE
+            elif parsed.startswith("t"):
+                return TYPED
+
+
+class CircuitStats:
+    def __init__(self, player, wins=0, losses=0, scores=HashTable(), season_stats=HashTable()):
+        self.player = player
+        self.wins = wins
+        self.losses = losses
+        self.scores = scores  # <score, count>
+        self.season_stats = season_stats  # <season name, season stats>
+
+
+class SeasonStats:
+    def __init__(self, player, circuit: CircuitStats, points=0, wins=0, losses=0, scores=HashTable(),
+                 tournament_stats=HashTable()):
+        self.player = player
+        self.circuit = circuit
+        self.points = points
+        self.wins = wins
+        self.losses = losses
+        self.scores = scores  # <score, count>
+        self.tournament_stats = tournament_stats  # <tournament name, tournament stats>
+
+
+class TournamentStats:
+    def __init__(self, player, season: SeasonStats, round_achieved=1, multiplier=1.0, points=0, wins=0, losses=0,
+                 scores=HashTable()):
+        self.player = player
+        self.season = season
+        self.round_achieved = round_achieved
+        self.multiplier = multiplier
+        self.points = points
+        self.wins = wins
+        self.losses = losses
+        self.scores = scores  # <score, count>
+
+    def add_points(self, points):
+        self.points += points
+        self.season.points += points
+
+    def add_score(self, opponent_score, our_score):
+        # Increment number of times player has had this score.
+        count = self.scores.find((our_score, opponent_score), 0) + 1
+        self.scores.insert((our_score, opponent_score), count)
+
+    def win(self):
+        self.wins += 1
+        self.season.wins += 1
+        self.season.circuit.wins += 1
+
+    def loss(self):
+        self.losses += 1
+        self.season.losses += 1
+        self.season.circuit.losses += 1
+
+
+class TournamentType:
+    def __init__(self, name: str, prizes: HashTable, difficulty: float):
         self.name = name
         self.prizes = prizes
         self.difficulty = difficulty
 
-    def __str__(self):
-        return "{name=" + self.name + \
-               ", prizes=" + str(self.prizes) + \
-               ", difficulty=" + str(self.difficulty) + "}"
-
 
 class Circuit:
-    def __init__(self):
+    def __init__(self, current_season=None, seasons=HashTable(), men=HashTable(), women=HashTable(),
+                 tournament_types=HashTable(), ranking_points=HashTable()):
         self.running = True
         self.command_executor = CommandExecutor(self)
-        self.tournaments = HashTable()
-        self.men = HashTable()
-        self.women = HashTable()
-        self.ranking_points = HashTable()
+        self.current_season = current_season
+        self.seasons = seasons
+        self.men = men
+        self.women = women
+        self.tournament_types = tournament_types
+        self.ranking_points = ranking_points
 
     def run(self):
-        load_tournaments(self.tournaments)
-        load_men(self.men)
-        load_women(self.women)
-        load_ranking_points(self.ranking_points)
-
         print("Type 'help' to see all commands.")
 
         while self.running:
@@ -81,6 +537,253 @@ class Circuit:
     def quit(self):
         self.running = False
 
+    def next_incomplete_season(self):
+        if self.current_season is not None and not self.current_season.complete:
+            return self.current_season
+
+        while True:
+            season_name = next_string("Enter a new season name")
+
+            if season_name is None:
+                continue
+
+            if self.seasons.find(season_name) is not None:
+                print("A season by that name already exists")
+                continue
+
+            previous_season = self.current_season
+            men_season_stats = self.create_season_stats(self.men)
+            women_season_stats = self.create_season_stats(self.women)
+            season = Season(self, previous_season, season_name, False, men_season_stats, women_season_stats)
+
+            self.current_season = season
+            self.seasons.insert(season_name.lower(), season)
+            return self.current_season
+
+    @staticmethod
+    def create_season_stats(profiles):
+        target = HashTable()
+
+        for player_name, player_profile in profiles:
+            circuit_stats = player_profile.stats
+            season_stats = SeasonStats(player_profile, circuit_stats)
+            target.insert(player_name, season_stats)
+
+        return target
+
+
+class Player:
+    def __init__(self, name, stats: CircuitStats = None):
+        self.name = name
+        self.stats = stats
+
+
+class Season:
+    def __init__(self, circuit: Circuit, previous, name: str, complete: bool, men_stats=HashTable(),
+                 women_stats=HashTable(), tournaments=HashTable()):
+        self.circuit = circuit
+        self.previous = previous
+        self.name = name
+        self.complete = complete
+        self.men_stats = men_stats
+        self.women_stats = women_stats
+        self.tournaments = tournaments  # <tournament name, tournament>
+
+    def start(self, tournament_name):
+        tournament: Tournament = self.tournaments.find(tournament_name)
+
+        if tournament is None or tournament.complete:
+            print("Starting a new tournament")
+
+            # Check tournament type is valid.
+            tournament_type = self.circuit.tournament_types.find(tournament_name)
+
+            if tournament_type is None:
+                print("A tournament by the name %s does not exist" % tournament_name)
+                return
+
+            # Create the tournament.
+            previous_tournament = None
+
+            if self.previous is not None:
+                previous_tournament = self.previous.tournaments.find(tournament_name)
+
+            men_tournament_stats = self.create_tournament_stats(self.circuit.men, self.men_stats)
+            women_tournament_stats = self.create_tournament_stats(self.circuit.women, self.women_stats)
+
+            tournament = Tournament(tournament_type, self, previous_tournament, False, 1, 1,
+                                    men_tournament_stats, women_tournament_stats)
+
+            self.tournaments.insert(tournament_name, tournament)
+        else:
+            print("Continuing tournament from saved progress")
+
+        tournament.run()
+
+    @staticmethod
+    def create_tournament_stats(profiles, stats):
+        target = HashTable()
+
+        for player_name, player_profile in profiles:
+            season_stats = stats.find(player_name)
+            tournament_stats = TournamentStats(player_profile, season_stats)
+            target.insert(player_name, tournament_stats)
+
+        return target
+
+
+class Tournament:
+    def __init__(self, tournament_type: TournamentType, season, previous, complete, men_round, women_round,
+                 men_stats=HashTable(), women_stats=HashTable()):
+        self.type = tournament_type
+        self.season = season
+        self.previous = previous
+        self.complete = complete
+        self.men_round = men_round
+        self.women_round = women_round
+        self.men_stats = men_stats
+        self.women_stats = women_stats
+        self.remaining_men_stats = men_stats.clone()
+        self.remaining_women_stats = women_stats.clone()
+
+    def run(self):
+        while True:
+            gender = next_gender("Select the track to play for the next round")
+            self.play_male_track(gender)
+
+    def play_male_track(self, gender):
+        input_type = next_input_type("How should data be entered?")
+        winning_score = 3
+
+        if input_type == FILE:
+            # Get the file to load the round data from.
+            default_round_file = "../resources/%s/%s/men/round_%d.csv" % (
+                self.season.name, self.type.name.lower(), self.men_round)
+            round_file = next_string("Enter file for round %d" % self.men_round, default_round_file)
+
+            winners = HashTable()
+            winner = None
+
+            # Run each match.
+            for match in load_round(round_file, 3, 2):
+                # Find the winner and add them to the next batch.
+                winner, winner_score, loser, loser_score = match.run(winning_score, self.remaining_men_stats)
+                winners.insert(winner.player.name, winner)
+
+                # Update the winner profile.
+                winner.win()
+                winner.add_score(winner_score, loser_score)
+
+                # Update the loser profile.
+                loser.loss()
+                loser.add_score(loser_score, winner_score)
+
+            if self.men_round == MAX_ROUNDS:
+                print("Tournament %s successfully complete for the male track" % self.type.name)
+                print("Winner: %s" % winner.player.name)
+                return
+
+            print("Winners for round %d:" % self.men_round)
+
+            for name, stats in winners:
+                print("- %s" % name)
+
+            self.remaining_men_stats = winners
+            self.men_round += 1
+
+        else:
+            # TODO: Implement typed input.
+            pass
+
+
+class Match:
+    def __init__(self, player_a, score_a, player_b, score_b, injure_win_score, injure_loss_score):
+        self.player_name_a = player_a
+        self.score_a = score_a
+        self.player_name_b = player_b
+        self.score_b = score_b
+        self.injure_win_score = injure_win_score
+        self.injure_loss_score = injure_loss_score
+
+    def run(self, winning_score, player_stats: HashTable):
+        # Validate players, both must still be able to play this round.
+        self.player_name_a = self.validate_player(self.player_name_a, player_stats)
+        # Prevent players playing any more matches this round, and load their
+        # relevant tournament stats for returning later.
+        player_stats_a = player_stats.delete(self.player_name_a)
+        self.player_name_b = self.validate_player(self.player_name_b, player_stats)
+        player_stats_b = player_stats.delete(self.player_name_b)
+
+        # Validate scores:
+        # - Only one may be a winner.
+        # - Both must be no bigger than the winning score.
+        # - Both must be no smaller than zero.
+        self.validate_scores(winning_score)
+
+        # Find and return the winner and loser with their scores.
+        if self.score_a > self.score_b:
+            return player_stats_a, self.score_a, player_stats_b, self.score_b
+        else:
+            return player_stats_b, self.score_b, player_stats_a, self.score_a
+
+    def validate_scores(self, winning_score):
+        while True:
+            self.score_a = self.validate_score(self.score_a, winning_score)
+            self.score_b = self.validate_score(self.score_b, winning_score)
+
+            if self.score_a == winning_score and self.score_b == winning_score:
+                print("Both players cannot be winners")
+                self.score_a = self.next_score(self.player_name_a, winning_score)
+                self.score_b = self.next_score(self.player_name_b, winning_score)
+                continue
+
+            if self.score_a == winning_score or self.score_b == winning_score:
+                return
+
+            injured = next_bool("Incomplete scores. Has a player been injured?", True)
+
+            if injured:
+                player_a_injured = next_bool("Was %s injured?" % self.player_name_a, True)
+
+                if player_a_injured:
+                    print("%s was injured and has been withdrawn from the tournament" % self.player_name_a)
+                    self.score_a = self.injure_loss_score
+                    self.score_b = self.injure_win_score
+                else:
+                    print("%s was injured and has been withdrawn from the tournament" % self.player_name_b)
+                    self.score_a = self.injure_win_score
+                    self.score_b = self.injure_loss_score
+
+                return
+
+            print("Please re-enter the scores so they are complete")
+            self.score_a = self.next_score(self.player_name_a, winning_score)
+            self.score_b = self.next_score(self.player_name_b, winning_score)
+
+    def next_score(self, player_name, winning_score):
+        score = next_int("Enter score for player %s" % player_name)
+        return self.validate_score(score, winning_score)
+
+    @staticmethod
+    def validate_score(score, winning_score):
+        while score > winning_score or score < 0:
+            score = next_int("Invalid score entered. Score must be between 0 and %d, try again" % winning_score)
+        return score
+
+    @staticmethod
+    def validate_player(player_name, player_stats):
+        while True:
+            if player_stats.find(player_name) is None:
+                print("\n=== WARNING ===")
+                print("%s cannot play this match." % player_name)
+                print("Valid players:")
+                for name, _ in player_stats:
+                    print("- %s" % name)
+                player_name = next_string("Enter a valid player to take their place")
+                print()
+            else:
+                return player_name
+
 
 class CommandExecutor:
     def __init__(self, circuit: Circuit):
@@ -88,6 +791,7 @@ class CommandExecutor:
         self.commands = {
             "help": self.help,
             "quit": self.quit,
+            "exit": self.quit,
             "start": self.start,
             "stats": self.stats
         }
@@ -105,37 +809,34 @@ class CommandExecutor:
         # Execute the command.
         executor(args[1:])
 
-    def help(self, args):
+    @staticmethod
+    def help(args):
         print(HELP_MESSAGE)
 
     def quit(self, args):
+        # TODO: Save all data.
         self.circuit.quit()
 
     def start(self, args):
-        tournament_name = args[0].lower()
-        tournament = self.circuit.complete_tournaments.find(tournament_name)
+        # Get the tournament name from the provided arguments.
+        tournament_name = args[0]
 
-        if tournament is not None:
-            print("Tournament has already ran")
-            return
+        # Get the next incomplete season.
+        season: Season = self.circuit.next_incomplete_season()
 
-        tournament = self.circuit.tournaments.find(tournament_name)
-
-        if tournament is None:
-            print("No such tournament exists.")
-            return
+        # Start the tournament.
+        season.start(tournament_name)
 
     def stats(self, args):
         pass
 
 
-class Season:
-    def __init__(self, name):
-        self.complete_tournaments = HashTable()
-
-
 def main():
-    circuit = Circuit()
+    if MAX_ROUNDS % 1 != 0:
+        print("Maximum players must be a power of two")
+        return
+
+    circuit = load_circuit()
     circuit.run()
 
 
