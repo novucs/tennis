@@ -5,11 +5,22 @@ from utils import *
 
 MALE = False
 FEMALE = True
+
 FILE = True
 TYPED = False
+
 MAX_PLAYERS = 32
+
 MAX_ROUNDS = math.log(MAX_PLAYERS, 2)
+
+MEN_WIN_SCORE = 3
+MEN_FORFEIT_SCORE = 2
+
+WOMEN_WIN_SCORE = 2
+WOMEN_FORFEIT_SCORE = 1
+
 TOURNAMENT_COUNT = 4
+
 HELP_MESSAGE = '''
 === TENNIS HELP ===
 
@@ -312,7 +323,7 @@ def load_circuit():
     return circuit
 
 
-def load_round(file_name, injure_win_score, injure_loss_score):
+def load_round(file_name, context):
     matches = List()
     with open(file_name, "r") as the_file:
         header = True
@@ -331,7 +342,7 @@ def load_round(file_name, injure_win_score, injure_loss_score):
             score_a = int(csv[1])
             player_b = csv[2]
             score_b = int(csv[3])
-            match = Match(injure_win_score, injure_loss_score, player_a, score_a, player_b, score_b)
+            match = Match(context, player_a, score_a, player_b, score_b)
             matches.append(match)
     return matches
 
@@ -632,6 +643,16 @@ class Season:
         return target
 
 
+class TournamentTrackContext:
+    def __init__(self, name, track_round, stats, remaining, winning_score, forfeit_score):
+        self.name = name
+        self.round = track_round
+        self.stats = stats
+        self.remaining = remaining
+        self.winning_score = winning_score
+        self.forfeit_score = forfeit_score
+
+
 class Tournament:
     def __init__(self, tournament_type: TournamentType, season, previous, complete, men_round, women_round,
                  men_stats=HashTable(), women_stats=HashTable()):
@@ -651,39 +672,50 @@ class Tournament:
 
         while running:
             gender = next_gender("Select the track to play for the next round")
-            self.play_male_track(gender)
+            if gender == MALE:
+                context = TournamentTrackContext("men", self.men_round, self.men_stats, self.remaining_men_stats,
+                                                 MEN_WIN_SCORE, MEN_FORFEIT_SCORE)
+                self.play_track(context)
+                self.men_round = context.round
+                self.men_stats = context.stats
+                self.remaining_men_stats = context.remaining
+            else:
+                context = TournamentTrackContext("women", self.women_round, self.women_stats,
+                                                 self.remaining_women_stats, WOMEN_WIN_SCORE, WOMEN_FORFEIT_SCORE)
+                self.play_track(context)
+                self.women_round = context.round
+                self.women_stats = context.stats
+                self.remaining_women_stats = context.remaining
             running = next_bool("Would you like to start the next round?", True)
 
-    def play_male_track(self, gender):
-        if self.men_round > MAX_ROUNDS:
+    def play_track(self, context):
+        if context.round > MAX_ROUNDS:
             print("This track is already complete")
             return
 
+        print("Playing the %s's track" % context.name)
         input_type = next_input_type("How should data be entered?")
-        winning_score = 3
-        injure_win_score = 3
-        injure_loss_score = 2
         winners = HashTable()
         winner = None
         matches = List()
 
         if input_type == FILE:
             # Get the file to load the round data from.
-            default_round_file = "../resources/%s/%s/men/round_%d.csv" % \
-                                 (self.season.name, self.type.name.lower(), self.men_round)
-            round_file = next_string("Enter file for round %d" % self.men_round, default_round_file)
-            matches = load_round(round_file, injure_win_score, injure_loss_score)
+            default_round_file = "../resources/%s/%s/%s/round_%d.csv" % \
+                                 (self.season.name, self.type.name.lower(), context.name, context.round)
+            round_file = next_string("Enter file for round %d" % context.round, default_round_file)
+            matches = load_round(round_file, context)
         else:
-            match_count = int(math.pow(2, MAX_ROUNDS - self.men_round))
+            match_count = int(math.pow(2, MAX_ROUNDS - context.round))
 
             for i in range(0, match_count):
-                match = Match(injure_win_score, injure_loss_score)
+                match = Match(context)
                 matches.append(match)
 
         # Run each match.
         for match in matches:
             # Find the winner and add them to the next batch.
-            winner, winner_score, loser, loser_score = match.run(winning_score, self.remaining_men_stats)
+            winner, winner_score, loser, loser_score = match.run(context.winning_score, context.remaining)
             winners.insert(winner.player.name, winner)
 
             # Update the winner profile.
@@ -694,25 +726,24 @@ class Tournament:
             loser.loss()
             loser.add_score(loser_score, winner_score)
 
-        if self.men_round == MAX_ROUNDS:
-            print("Tournament %s successfully complete for the male track" % self.type.name)
+        if context.round == MAX_ROUNDS:
+            print("Tournament %s successfully complete for the men's track" % self.type.name)
             print("Winner: %s" % winner.player.name)
-            self.men_round += 1
+            context.round += 1
             return
 
-        print("Winners for round %d:" % self.men_round)
+        print("Winners for round %d:" % context.round)
 
         for name, stats in winners:
             print("- %s" % name)
 
-        self.remaining_men_stats = winners
-        self.men_round += 1
+        context.remaining = winners
+        context.round += 1
 
 
 class Match:
-    def __init__(self, injure_win_score, injure_loss_score, player_a=None, score_a=None, player_b=None, score_b=None):
-        self.injure_win_score = injure_win_score
-        self.injure_loss_score = injure_loss_score
+    def __init__(self, context, player_a=None, score_a=None, player_b=None, score_b=None):
+        self.context = context
         self.player_name_a = player_a
         self.score_a = score_a
         self.player_name_b = player_b
@@ -770,12 +801,12 @@ class Match:
 
                 if player_a_injured:
                     print("%s was injured and has been withdrawn from the tournament" % self.player_name_a)
-                    self.score_a = self.injure_loss_score
-                    self.score_b = self.injure_win_score
+                    self.score_a = self.context.forfeit_score
+                    self.score_b = self.context.winning_score
                 else:
                     print("%s was injured and has been withdrawn from the tournament" % self.player_name_b)
-                    self.score_a = self.injure_win_score
-                    self.score_b = self.injure_loss_score
+                    self.score_a = self.context.winning_score
+                    self.score_b = self.context.forfeit_score
 
                 return
 
