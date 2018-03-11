@@ -36,12 +36,12 @@ class Tournament:
 
             running = next_bool('Would you like to start the next round?', True)
 
-    def play_track(self, context):
-        if context.round > MAX_ROUNDS:
+    def play_track(self, track: Track):
+        if track.round > MAX_ROUNDS:
             print('This track is already complete')
             return
 
-        print('Playing the %s\'s track' % context.name)
+        print('Playing the %s\'s track' % track.name)
         input_type = next_input_type('How should data be entered?')
         winners = HashTable()
         winner = None
@@ -50,21 +50,21 @@ class Tournament:
         if input_type == FILE:
             # Get the file to load the round data from.
             default_round_file = '../resources/%s/%s/%s/round_%d.csv' % \
-                                 (self.season.name, self.type.name.lower(), context.name, context.round)
-            round_file = next_string('Enter file for round %d' % context.round, default_round_file)
+                                 (self.season.name, self.type.name.lower(), track.name, track.round)
+            round_file = next_string('Enter file for round %d' % track.round, default_round_file)
             from loader import load_round
-            matches = load_round(round_file, context)
+            matches = load_round(round_file, track)
         else:
-            match_count = int(math.pow(2, MAX_ROUNDS - context.round))
+            match_count = int(math.pow(2, MAX_ROUNDS - track.round))
 
             for i in range(0, match_count):
-                match = Match(context)
+                match = Match(track)
                 matches.append(match)
 
         # Run each match.
         for match in matches:
             # Find the winner and add them to the next batch.
-            winner, winner_score, loser, loser_score = match.run(context.winning_score, context.remaining)
+            winner, winner_score, loser, loser_score = match.run(track.winning_score, track.remaining)
             winners.insert(winner.player.name, winner)
 
             # Update the winner profile.
@@ -75,16 +75,16 @@ class Tournament:
             loser.loss()
             loser.add_score(loser_score, winner_score)
 
-        if context.round == MAX_ROUNDS:
+        if track.round == MAX_ROUNDS:
             print('Tournament %s successfully complete for the men\'s track' % self.type.name)
             print('Winner: %s' % winner.player.name)
-            context.round += 1
+            track.round += 1
             return
 
-        print('Winners for round %d:' % context.round)
+        print('Winners for round %d:' % track.round)
 
         for name, stats in winners:
             print('- %s' % name)
 
-        context.remaining = winners
-        context.round += 1
+        track.remaining = winners
+        track.round += 1

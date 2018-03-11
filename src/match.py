@@ -13,8 +13,8 @@ class Track:
 
 
 class Match:
-    def __init__(self, context: Track, player_a=None, score_a=None, player_b=None, score_b=None):
-        self.context = context
+    def __init__(self, track: Track, player_a=None, score_a=None, player_b=None, score_b=None):
+        self.track = track
         self.player_name_a = player_a
         self.score_a = score_a
         self.player_name_b = player_b
@@ -72,12 +72,12 @@ class Match:
 
                 if player_a_injured:
                     print('%s was injured and has been withdrawn from the tournament' % self.player_name_a)
-                    self.score_a = self.context.forfeit_score
-                    self.score_b = self.context.winning_score
+                    self.score_a = self.track.forfeit_score
+                    self.score_b = self.track.winning_score
                 else:
                     print('%s was injured and has been withdrawn from the tournament' % self.player_name_b)
-                    self.score_a = self.context.winning_score
-                    self.score_b = self.context.forfeit_score
+                    self.score_a = self.track.winning_score
+                    self.score_b = self.track.forfeit_score
 
                 return
 
