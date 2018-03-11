@@ -61,11 +61,11 @@ class List:
 
     def __str__(self):
         if self._size == 0:
-            return "[]"
-        target = "["
+            return '[]'
+        target = '['
         for item in self:
-            target += str(item) + ", "
-        target = target[:-2] + "]"
+            target += str(item) + ', '
+        target = target[:-2] + ']'
         return target
 
     def __select_node(self, index):
@@ -75,7 +75,7 @@ class List:
         :return: The node at the provided index.
         """
         if index < 0 or index >= self._size:
-            raise ValueError("Index out of bounds")
+            raise ValueError('Index out of bounds')
 
         if index <= self._size / 2:
             node = self._first

@@ -3,7 +3,7 @@
 """
 
 PipeSort. An optimal sorting algorithm for binding to data streams. Makes use
-of a combination of natural "runs" in data and merges each run to the next
+of a combination of natural 'runs' in data and merges each run to the next
 closest in size.
 
 """
@@ -173,7 +173,7 @@ class Sorter:
 def next_run(iterator):
     """Finds the next run in the tree iterator.
 
-    :param iterator: The "runs" tree iterator.
+    :param iterator: The 'runs' tree iterator.
     :return: The next element in the tree iterator, otherwise None.
     """
     run_tuple = next(iterator, None)

@@ -73,11 +73,11 @@ class HashTable:
 
     def __str__(self):
         if self._size == 0:
-            return "[]"
-        target = "["
+            return '[]'
+        target = '['
         for key, value in self:
-            target += "(" + str(key) + ", " + str(value) + "), "
-        target = target[:-2] + "]"
+            target += '(' + str(key) + ', ' + str(value) + '), '
+        target = target[:-2] + ']'
         return target
 
     def find(self, key, default=None):

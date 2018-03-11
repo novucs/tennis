@@ -92,11 +92,11 @@ class Tree:
 
     def __str__(self):
         if self._size == 0:
-            return "[]"
-        target = "["
+            return '[]'
+        target = '['
         for pair in self:
-            target += str(pair) + ", "
-        target = target[:-2] + "]"
+            target += str(pair) + ', '
+        target = target[:-2] + ']'
         return target
 
     def insert(self, key, value):
@@ -113,7 +113,7 @@ class Tree:
 
         # Disallow NoneType keys.
         if key is None or value is None:
-            raise ValueError("Keys and values are not allowed to be of type None")
+            raise ValueError('Keys and values are not allowed to be of type None')
 
         # If tree does not already contain a root, simply add one in.
         if self._root is None:
@@ -196,7 +196,7 @@ class Tree:
                 node = grandparent_of(node)
                 continue
 
-            # Case 4 - When the current node is on the "outside" of the subtree
+            # Case 4 - When the current node is on the 'outside' of the subtree
             # Step 1   under the grandparent:
             #              1. Rotate the parent away from its relation to the
             #                 grandparent.
@@ -247,7 +247,7 @@ class Tree:
         """
 
         if key is None:
-            raise ValueError("Keys are not allowed to be of type None")
+            raise ValueError('Keys are not allowed to be of type None')
 
         node = self._root
         while node is not None:
@@ -268,7 +268,7 @@ class Tree:
         """
 
         if index < 0 or index >= self._size:
-            raise ValueError("Index out of bounds")
+            raise ValueError('Index out of bounds')
 
         node = self._root
 
