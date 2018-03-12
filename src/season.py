@@ -5,13 +5,15 @@ from tournament import Tournament
 
 class Season:
     def __init__(self, circuit, previous, name: str, complete: bool, men_stats=HashTable(),
-                 women_stats=HashTable(), tournaments=HashTable()):
+                 women_stats=HashTable(), men_scoreboard=(), women_scoreboard=(), tournaments=HashTable()):
         self.circuit = circuit
         self.previous = previous
         self.name = name
         self.complete = complete
         self.men_stats = men_stats
         self.women_stats = women_stats
+        self.men_scoreboard = men_scoreboard
+        self.women_scoreboard = women_scoreboard
         self.tournaments = tournaments  # <tournament name, tournament>
 
     def run(self, tournament_name):

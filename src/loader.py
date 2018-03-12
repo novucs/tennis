@@ -5,6 +5,7 @@ from config import TOURNAMENTS_FILE, RANKING_POINTS_FILE, OUTPUT, RESOURCES
 from hash_table import HashTable
 from linked_list import List
 from match import Match
+from pipe_sort import Sorter
 from player import SeasonStats, TournamentStats, Player, CircuitStats
 from season import Season
 from tournament import TournamentType, Tournament
@@ -169,8 +170,15 @@ def load_circuit():
             complete = bool(csv[1])
 
             previous = circuit.current_season
-            season = Season(circuit, previous, name, complete)
+
+            men_stats = load_season_player_stats(name, 'men', circuit.men)
+            women_stats = load_season_player_stats(name, 'women', circuit.women)
+            men_scoreboard = load_season_player_scoreboard(men_stats)
+            women_scoreboard = load_season_player_scoreboard(women_stats)
+
+            season = Season(circuit, previous, name, complete, men_stats, women_stats, men_scoreboard, women_scoreboard)
             load_season(season)
+            # TODO: Create and sort season scoreboard.
             circuit.current_season = season
             circuit.seasons.insert(name, season)
 
@@ -203,8 +211,16 @@ def load_tournament_player_stats(tournament, gender, season_player_stats, tourna
                 tournament_remaining_player_stats.insert(player_name, tournament_stats)
 
 
-def load_season_player_stats(season, gender, circuit_players, season_player_stats):
-    with open('%s/%s/%s.csv' % (OUTPUT, season.name, gender)) as the_file:
+def load_season_player_scoreboard(season_stats):
+    sorter = Sorter(lambda a, b: a.points - b.points)
+    for name, player_stats in season_stats:
+        sorter.consume(player_stats)
+    return sorter.sort()
+
+
+def load_season_player_stats(season_name, gender, circuit_players):
+    stats = HashTable()
+    with open('%s/%s/%s.csv' % (OUTPUT, season_name, gender)) as the_file:
         for line in the_file:
             # Parse player stats.
             csv = parse_csv_line(line)
@@ -219,7 +235,8 @@ def load_season_player_stats(season, gender, circuit_players, season_player_stat
             season_stats = SeasonStats(circuit_stats.player, circuit_stats, points, wins, losses, scores)
 
             # Add this profile to the season players.
-            season_player_stats.insert(player_name, season_stats)
+            stats.insert(player_name, season_stats)
+    return stats
 
 
 def load_circuit_players(gender, players):
@@ -260,9 +277,6 @@ def load_circuit_players(gender, players):
 
 
 def load_season(season):
-    load_season_player_stats(season, 'men', season.circuit.men, season.men_stats)
-    load_season_player_stats(season, 'women', season.circuit.women, season.women_stats)
-
     # Load the progress of this season.
     with open('%s/%s/progress.csv' % (OUTPUT, season.name)) as the_file:
         for line in the_file:
@@ -289,7 +303,7 @@ def load_season(season):
 
 
 def load_tournament(tournament):
-    load_tournament_player_stats(tournament, 'men', tournament.season.men_stats, tournament.men_stats,
-                                 tournament.remaining_men_stats, tournament.men_round)
-    load_tournament_player_stats(tournament, 'women', tournament.season.women_stats, tournament.women_stats,
-                                 tournament.remaining_women_stats, tournament.women_round)
+    load_tournament_player_stats(tournament, 'men', tournament.season.men_stats, tournament.men_track.stats,
+                                 tournament.men_track.remaining, tournament.men_track.round)
+    load_tournament_player_stats(tournament, 'women', tournament.season.women_stats, tournament.men_track.stats,
+                                 tournament.women_track.remaining, tournament.women_track.round)

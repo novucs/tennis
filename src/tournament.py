@@ -21,9 +21,16 @@ class Tournament:
         self.season = season
         self.previous = previous
         self.complete = complete
-        self.men_track = Track('men', men_round, men_stats, men_stats.clone(), MEN_WIN_SCORE, MEN_FORFEIT_SCORE)
+
+        men_previous_stats = None
+        men_previous_season_scoreboard = None
+        women_previous_stats = None
+        women_previous_season_scoreboard = None
+
+        self.men_track = Track('men', men_round, men_stats, men_stats.clone(), MEN_WIN_SCORE, MEN_FORFEIT_SCORE,
+                               men_previous_stats, men_previous_season_scoreboard)
         self.women_track = Track('women', women_round, women_stats, women_stats.clone(), WOMEN_WIN_SCORE,
-                                 WOMEN_FORFEIT_SCORE)
+                                 WOMEN_FORFEIT_SCORE, women_previous_stats, women_previous_season_scoreboard)
 
     def run(self):
         running = True
