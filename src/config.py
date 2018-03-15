@@ -27,13 +27,13 @@ Starts the next tournament.
 > stats
 Shows the player with most wins and player with most losses.
 
-> stats <player> score <score> season <season> [tournament <tournament>]
+> stats score <player> <score> [season] [tournament]
 Gets number of times a player got a specific score in a tournament or season.
 
-> stats <player> wins [season [tournament <tournament>]]
+> stats wins <player> [season] [tournament]
 Gets total number of times a player won in a tournament, season, or overall.
 
-> stats <player> losses [season [tournament <tournament>]]
+> stats losses <player> [season] [tournament]
 Gets total number of times a player lost in a tournament, season, or overall.
 
 ===================

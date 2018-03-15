@@ -6,8 +6,15 @@ class CircuitStats:
         self.player = player
         self.wins = wins
         self.losses = losses
-        self.scores = scores  # <score, count>
-        self.season_stats = season_stats  # <season name, season stats>
+        self.scores = scores.clone()  # <score, count>
+        self.season_stats = season_stats.clone()  # <season name, season stats>
+
+    def __repr__(self):
+        return '%s: %s' % (self.__class__.__name__, self.player)
+
+    def add_score(self, our_score, opponent_score):
+        count = self.scores.find((our_score, opponent_score), 0) + 1
+        self.scores.insert((our_score, opponent_score), count)
 
 
 class SeasonStats:
@@ -18,8 +25,16 @@ class SeasonStats:
         self.points = points
         self.wins = wins
         self.losses = losses
-        self.scores = scores  # <score, count>
-        self.tournament_stats = tournament_stats  # <tournament name, tournament stats>
+        self.scores = scores.clone()  # <score, count>
+        self.tournament_stats = tournament_stats.clone()  # <tournament name, tournament stats>
+
+    def __repr__(self):
+        return '%s: %s' % (self.__class__.__name__, self.player)
+
+    def add_score(self, our_score, opponent_score):
+        count = self.scores.find((our_score, opponent_score), 0) + 1
+        self.scores.insert((our_score, opponent_score), count)
+        self.circuit.add_score(our_score, opponent_score)
 
 
 class TournamentStats:
@@ -32,21 +47,26 @@ class TournamentStats:
         self.points = points
         self.wins = wins
         self.losses = losses
-        self.scores = scores  # <score, count>
+        self.scores = scores.clone()  # <score, count>
+
+    def __repr__(self):
+        return '%s: %s' % (self.__class__.__name__, self.player)
 
     def add_points(self, points):
         self.points += points
         self.season.points += points
 
-    def add_score(self, opponent_score, our_score):
+    def add_score(self, our_score, opponent_score):
         # Increment number of times player has had this score.
         count = self.scores.find((our_score, opponent_score), 0) + 1
         self.scores.insert((our_score, opponent_score), count)
+        self.season.add_score(our_score, opponent_score)
 
     def win(self):
         self.wins += 1
         self.season.wins += 1
         self.season.circuit.wins += 1
+        self.round_achieved += 1
 
     def loss(self):
         self.losses += 1
@@ -58,3 +78,6 @@ class Player:
     def __init__(self, name, stats: CircuitStats = None):
         self.name = name
         self.stats = stats
+
+    def __repr__(self):
+        return '%s' % self.name

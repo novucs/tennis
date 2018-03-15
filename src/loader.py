@@ -63,7 +63,7 @@ def parse_csv_line(line):
         elif character == '"':
             quotes = not quotes
         elif not quotes and character == ',':
-            values.append(value)
+            values.append(value.strip())
             value = ''
         else:
             value += character
@@ -135,6 +135,7 @@ def load_track(tournament, gender, track_round):
             season_stats: SeasonStats = tournament.season.get_stats(gender).find(player_name)
             tournament_stats = TournamentStats(season_stats.player, season_stats, round_achieved, multiplier, points,
                                                wins, losses, scores)
+            tournament_stats.season.tournament_stats.insert(tournament.type.name, tournament_stats)
 
             # Add this profile to the tournament players.
             stats.insert(player_name, tournament_stats)
@@ -181,6 +182,7 @@ def load_season_player_stats(season_name, gender, circuit_players):
             # Create the players' season stats profile.
             player: Player = circuit_players.find(player_name)
             season_stats = SeasonStats(player, player.stats, points, wins, losses, scores)
+            player.stats.season_stats.insert(season_name, season_stats)
 
             # Add this profile to the season players.
             stats.insert(player_name, season_stats)
@@ -243,8 +245,8 @@ def load_circuit_players(gender, players):
             # Parse the players' circuit stats.
             csv = parse_csv_line(line)
             name = csv[0]
-            wins = csv[1]
-            losses = csv[2]
+            wins = int(csv[1])
+            losses = int(csv[2])
             scores = load_scores(csv[3])
 
             # Create the players circuit stats profile.
@@ -403,12 +405,25 @@ def save_season(season: Season):
         save_tournament(tournament)
 
 
+def save_circuit_player_stats(gender, players):
+    filename = '%s/%s.csv' % (OUTPUT, gender)
+    prepare_persist(filename)
+    with open(filename, 'a') as the_file:
+        for name, player in players:
+            stats: CircuitStats = player.stats
+            scores = save_scores(stats.scores)
+            the_file.write('%s,%d,%d,"%s"\n' % (name, stats.wins, stats.losses, scores))
+
+
 def save_circuit(circuit: Circuit):
     filename = '%s/progress.csv' % OUTPUT
     prepare_persist(filename)
     with open(filename, 'a') as the_file:
         for name, season in circuit.seasons:
             the_file.write('%s,%s\n' % (name, season.complete))
+
+    save_circuit_player_stats('men', circuit.men)
+    save_circuit_player_stats('women', circuit.women)
 
     for name, season in circuit.seasons:
         save_season(season)

@@ -1,7 +1,7 @@
 from config import get_forfeit_score, get_winning_score
 from hash_table import HashTable
 from match import Track
-from player import TournamentStats
+from player import TournamentStats, SeasonStats
 from ranked_tree import Tree
 from tournament import Tournament
 
@@ -52,8 +52,9 @@ class Season:
         stats = HashTable()
 
         for player_name, player_profile in self.circuit.get_players(gender):
-            season_stats = self.get_stats(gender).find(player_name)
+            season_stats: SeasonStats = self.get_stats(gender).find(player_name)
             tournament_stats = TournamentStats(player_profile, season_stats)
+            season_stats.tournament_stats.insert(tournament.type.name, tournament_stats)
             stats.insert(player_name, tournament_stats)
 
         winning_score = get_winning_score(gender)

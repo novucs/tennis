@@ -1,5 +1,5 @@
 from hash_table import HashTable
-from player import SeasonStats
+from player import SeasonStats, CircuitStats
 from season import Season
 from user_input import next_string
 
@@ -9,11 +9,11 @@ class Circuit:
                  tournament_types=HashTable(), ranking_points=HashTable()):
         self.running = True
         self.current_season = current_season
-        self.seasons = seasons
-        self.men = men
-        self.women = women
-        self.tournament_types = tournament_types
-        self.ranking_points = ranking_points
+        self.seasons = seasons.clone()
+        self.men = men.clone()
+        self.women = women.clone()
+        self.tournament_types = tournament_types.clone()
+        self.ranking_points = ranking_points.clone()
 
     def next_incomplete_season(self):
         if self.current_season is not None and not self.current_season.complete:
@@ -30,8 +30,8 @@ class Circuit:
                 continue
 
             previous_season = self.current_season
-            men_season_stats = self.create_season_stats(self.men)
-            women_season_stats = self.create_season_stats(self.women)
+            men_season_stats = self.create_season_stats(season_name, self.men)
+            women_season_stats = self.create_season_stats(season_name, self.women)
             men_scoreboard = self.create_scoreboard(self.men)
             women_scoreboard = self.create_scoreboard(self.women)
             season = Season(self, previous_season, season_name, False, men_season_stats, women_season_stats,
@@ -51,12 +51,13 @@ class Circuit:
         return scoreboard
 
     @staticmethod
-    def create_season_stats(profiles):
+    def create_season_stats(season_name, profiles):
         target = HashTable()
 
         for player_name, player_profile in profiles:
-            circuit_stats = player_profile.stats
+            circuit_stats: CircuitStats = player_profile.stats
             season_stats = SeasonStats(player_profile, circuit_stats)
+            circuit_stats.season_stats.insert(season_name, season_stats)
             target.insert(player_name, season_stats)
 
         return target

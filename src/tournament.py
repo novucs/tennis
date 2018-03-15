@@ -32,7 +32,7 @@ class Tournament:
         running = True
 
         while running:
-            gender = next_gender('Select the track to play for the next round')
+            gender = next_gender('Select the track to play for the next round', self.men_track.round <= MAX_ROUNDS)
 
             track = self.men_track if gender == MALE else self.women_track
             self.play_track(track)
@@ -75,7 +75,6 @@ class Tournament:
             winner, winner_score, loser, loser_score = match.run(track.winning_score, track.remaining)
             winners.insert(winner.player.name, winner)
             winner: TournamentStats = winner
-            winner.round_achieved += 1
 
             # Update the winner profile.
             winner.win()
