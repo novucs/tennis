@@ -48,3 +48,11 @@ RANKING_POINTS_FILE = '%s/ranking_points.csv' % RESOURCES
 
 if MAX_ROUNDS % 1 != 0:
     raise ValueError('Maximum players must be a power of two')
+
+
+def get_winning_score(gender):
+    return MEN_WIN_SCORE if gender == 'men' else WOMEN_WIN_SCORE
+
+
+def get_forfeit_score(gender):
+    return MEN_FORFEIT_SCORE if gender == 'men' else WOMEN_FORFEIT_SCORE

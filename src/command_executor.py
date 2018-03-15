@@ -1,4 +1,5 @@
 from config import HELP_MESSAGE
+from loader import save_circuit
 from user_input import next_string
 
 
@@ -39,7 +40,7 @@ class CommandExecutor:
         print(HELP_MESSAGE)
 
     def quit(self, args):
-        # TODO: Save all data.
+        save_circuit(self.circuit)
         self.running = False
 
     def start(self, args):

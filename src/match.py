@@ -4,7 +4,7 @@ from user_input import next_string, next_int, next_bool
 
 
 class Track:
-    def __init__(self, name, track_round, stats, remaining, winning_score, forfeit_score, previous_stats,
+    def __init__(self, name, track_round, stats, remaining, winning_score, forfeit_score, scoreboard, previous_stats,
                  previous_season_scoreboard):
         self.name = name
         self.round = track_round
@@ -12,6 +12,7 @@ class Track:
         self.remaining = remaining
         self.winning_score = winning_score
         self.forfeit_score = forfeit_score
+        self.scoreboard = scoreboard
         self.previous_stats = previous_stats
         self.previous_season_scoreboard = previous_season_scoreboard
 

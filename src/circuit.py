@@ -60,3 +60,6 @@ class Circuit:
             target.insert(player_name, season_stats)
 
         return target
+
+    def get_players(self, gender):
+        return self.men if gender == 'men' else self.women

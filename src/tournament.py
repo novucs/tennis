@@ -1,6 +1,6 @@
 import math
 
-from config import MEN_WIN_SCORE, MEN_FORFEIT_SCORE, WOMEN_WIN_SCORE, WOMEN_FORFEIT_SCORE, MAX_ROUNDS
+from config import MAX_ROUNDS
 from hash_table import HashTable
 from linked_list import List
 from match import Track, Match
@@ -15,22 +15,13 @@ class TournamentType:
 
 
 class Tournament:
-    def __init__(self, tournament_type: TournamentType, season, previous, complete, men_round, women_round,
-                 men_stats=HashTable(), women_stats=HashTable()):
+    def __init__(self, season, tournament_type: TournamentType, previous, complete):
         self.type = tournament_type
         self.season = season
         self.previous = previous
         self.complete = complete
-
-        men_previous_stats = None
-        men_previous_season_scoreboard = None
-        women_previous_stats = None
-        women_previous_season_scoreboard = None
-
-        self.men_track = Track('men', men_round, men_stats, men_stats.clone(), MEN_WIN_SCORE, MEN_FORFEIT_SCORE,
-                               men_previous_stats, men_previous_season_scoreboard)
-        self.women_track = Track('women', women_round, women_stats, women_stats.clone(), WOMEN_WIN_SCORE,
-                                 WOMEN_FORFEIT_SCORE, women_previous_stats, women_previous_season_scoreboard)
+        self.men_track = None
+        self.women_track = None
 
     def run(self):
         running = True
@@ -95,3 +86,6 @@ class Tournament:
 
         track.remaining = winners
         track.round += 1
+
+    def get_track(self, gender):
+        return self.men_track if gender == 'men' else self.women_track
