@@ -1,5 +1,6 @@
 from config import HELP_MESSAGE
 from loader import save_circuit
+from season import Season
 from user_input import next_string
 
 
@@ -23,6 +24,9 @@ class CommandExecutor:
             self.execute(command)
 
     def execute(self, command):
+        if command is None:
+            return
+
         # Find the executor.
         args = command.split(' ')
         executor = self.commands.get(args[0])
@@ -48,7 +52,7 @@ class CommandExecutor:
         tournament_name = args[0]
 
         # Get the next incomplete season.
-        season = self.circuit.next_incomplete_season()
+        season: Season = self.circuit.next_incomplete_season()
 
         # Start the tournament.
         season.run(tournament_name)

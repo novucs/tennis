@@ -22,7 +22,7 @@ class Season:
     def run(self, tournament_name):
         tournament: Tournament = self.tournaments.find(tournament_name)
 
-        if tournament is None or tournament.complete:
+        if tournament is None:
             print('Starting a new tournament')
 
             # Check tournament type is valid.

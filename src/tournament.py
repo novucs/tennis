@@ -4,6 +4,7 @@ from config import MAX_ROUNDS
 from hash_table import HashTable
 from linked_list import List
 from match import Track, Match
+from player import TournamentStats
 from user_input import next_gender, next_bool, next_input_type, FILE, next_string, MALE
 
 
@@ -20,10 +21,14 @@ class Tournament:
         self.season = season
         self.previous = previous
         self.complete = complete
-        self.men_track = None
-        self.women_track = None
+        self.men_track: Track = None
+        self.women_track: Track = None
 
     def run(self):
+        if self.complete:
+            print("Tournament is already complete")
+            return
+
         running = True
 
         while running:
@@ -31,6 +36,11 @@ class Tournament:
 
             track = self.men_track if gender == MALE else self.women_track
             self.play_track(track)
+
+            if self.men_track.round > MAX_ROUNDS and self.women_track.round > MAX_ROUNDS:
+                self.complete = True
+                print("Tournament is complete")
+                return
 
             running = next_bool('Would you like to start the next round?', True)
 
@@ -64,6 +74,8 @@ class Tournament:
             # Find the winner and add them to the next batch.
             winner, winner_score, loser, loser_score = match.run(track.winning_score, track.remaining)
             winners.insert(winner.player.name, winner)
+            winner: TournamentStats = winner
+            winner.round_achieved += 1
 
             # Update the winner profile.
             winner.win()
@@ -74,7 +86,7 @@ class Tournament:
             loser.add_score(loser_score, winner_score)
 
         if track.round == MAX_ROUNDS:
-            print('Tournament %s successfully complete for the men\'s track' % self.type.name)
+            print('Tournament %s successfully complete for the %s\'s track' % (self.type.name, track.name))
             print('Winner: %s' % winner.player.name)
             track.round += 1
             return
