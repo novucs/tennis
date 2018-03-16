@@ -32,7 +32,7 @@ class Tournament:
         running = True
 
         while running:
-            gender = next_gender('Select the track to play for the next round', self.men_track.round <= MAX_ROUNDS)
+            gender = next_gender('Select the track to play for the next round', self.men_track.round > MAX_ROUNDS)
 
             track = self.men_track if gender == MALE else self.women_track
             self.play_track(track)

@@ -97,7 +97,7 @@ def next_gender(message, default=None):
     """
 
     while True:
-        default_text = 'm/F' if default else 'M/f'
+        default_text = 'F/m' if default else 'M/f'
         user_input = next_string(message, default_text)
 
         if user_input is not None:

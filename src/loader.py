@@ -328,13 +328,15 @@ def load_circuit():
     if not os.path.isfile(circuit_progress_file):
         return circuit
 
+    season = None
+
     with open(circuit_progress_file, 'r') as the_file:
         for line in the_file:
             csv = parse_csv_line(line)
             name = csv[0]
             complete = parse_bool(csv[1])
 
-            previous = circuit.current_season
+            previous = season
 
             men_stats = load_season_player_stats(name, 'men', circuit.men)
             women_stats = load_season_player_stats(name, 'women', circuit.women)
@@ -345,7 +347,9 @@ def load_circuit():
             season.tournaments = load_tournaments(season)
 
             # TODO: Create and sort season scoreboard.
-            circuit.current_season = season
+            if not season.complete:
+                circuit.current_season = season
+
             circuit.seasons.insert(name, season)
 
     return circuit
@@ -389,10 +393,6 @@ def save_season(season: Season):
     filename = '%s/%s/progress.csv' % (OUTPUT, season.name)
     prepare_persist(filename)
     with open(filename, 'a') as the_file:
-        # name = csv[0]
-        # complete = parse_bool(csv[1])
-        # men_round = int(csv[2])
-        # women_round = int(csv[3])
         for name, tournament in season.tournaments:
             men_round = tournament.men_track.round
             women_round = tournament.women_track.round

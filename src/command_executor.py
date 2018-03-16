@@ -80,23 +80,14 @@ class CommandExecutor:
         executor(args[1:])
 
     def stats_score(self, args):
-        if len(args) == 0:
-            print('Player not specified')
+        player = self.get_player(args)
+        if player is None:
             return
 
         if len(args) == 1:
             print('Score not specified')
             return
 
-        player = self.circuit.men.find(args[0])
-
-        if player is None:
-            player = self.circuit.women.find(args[0])
-            if player is None:
-                print('No such player by the name %s was found' % args[0])
-                return
-
-        stats: CircuitStats = player.stats
         scores = args[1].split(':')
 
         if len(scores) < 2:
@@ -105,36 +96,36 @@ class CommandExecutor:
 
         our_score = int(scores[0])
         opponent_score = int(scores[1])
-        season = None
-
-        if len(args) >= 3:
-            season: Season = self.circuit.seasons.find(args[2])
-            if season is None:
-                print('No season by the name %s found' % args[2])
-                return
-            stats: SeasonStats = stats.season_stats.find(season.name)
-
-        if len(args) >= 4:
-            tournament: Tournament = season.tournaments.find(args[3])
-            if tournament is None:
-                print('No tournament by the name %s found' % args[3])
-                return
-            stats: TournamentStats = stats.tournament_stats.find(tournament.type.name)
+        stats = self.get_stats(args[2:], player.stats)
+        if stats is None:
+            return
 
         count = stats.scores.find((our_score, opponent_score), 0)
         print('%s earned a score of %s %d times' % (player.name, args[1], count))
 
     def stats_wins(self, args):
-        if len(args) == 0:
-            print('Player not specified')
+        player = self.get_player(args)
+        if player is None:
             return
-        pass
+
+        stats = self.get_stats(args[1:], player.stats)
+        if stats is None:
+            return
+
+        count = stats.wins
+        print('%s has won %d times' % (player.name, count))
 
     def stats_losses(self, args):
-        if len(args) == 0:
-            print('Player not specified')
+        player = self.get_player(args)
+        if player is None:
             return
-        pass
+
+        stats = self.get_stats(args[1:], player.stats)
+        if stats is None:
+            return
+
+        count = stats.losses
+        print('%s has won %d times' % (player.name, count))
 
     def print_circuit_stats(self, gender: str):
         season: Season = self.circuit.current_season
@@ -155,6 +146,37 @@ class CommandExecutor:
 
         for player_stats in losers:
             print('- %s' % player_stats.player.name)
+
+    def get_player(self, args):
+        if len(args) == 0:
+            print('Player not specified')
+            return None
+
+        player = self.circuit.men.find(args[0])
+
+        if player is None:
+            player = self.circuit.women.find(args[0])
+
+        if player is None:
+            print('No such player by the name %s was found' % args[0])
+
+        return player
+
+    def get_stats(self, args, stats):
+        if len(args) >= 1:
+            season: Season = self.circuit.seasons.find(args[0])
+            if season is None:
+                print('No season by the name %s found' % args[0])
+                return None
+            stats: SeasonStats = stats.season_stats.find(season.name)
+
+            if len(args) >= 2:
+                tournament: Tournament = season.tournaments.find(args[1])
+                if tournament is None:
+                    print('No tournament by the name %s found' % args[1])
+                    return None
+                stats: TournamentStats = stats.tournament_stats.find(tournament.type.name)
+        return stats
 
     @staticmethod
     def get_most_wins(player_stats):
