@@ -24,6 +24,9 @@ Quits the program.
 > start <tournament>
 Starts the next tournament.
 
+> scoreboard <season> [tournament]
+Shows the scoreboard for the given season or tournament.
+
 > stats
 Shows the player with most wins and player with most losses.
 
@@ -56,3 +59,13 @@ def get_winning_score(gender):
 
 def get_forfeit_score(gender):
     return MEN_FORFEIT_SCORE if gender == 'men' else WOMEN_FORFEIT_SCORE
+
+
+def apply_multiplier(gender, winner, loser_score):
+    if gender == 'men':
+        if loser_score == 0:
+            winner.multiplier += 2.5
+        elif loser_score == 1:
+            winner.multiplier += 1.5
+    elif loser_score == 0:
+        winner.multiplier += 2.5

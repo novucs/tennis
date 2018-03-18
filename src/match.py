@@ -1,5 +1,6 @@
 from config import MAX_PLAYERS
 from hash_table import HashTable
+from ranked_tree import Tree
 from user_input import next_string, next_int, next_bool
 
 
@@ -12,7 +13,7 @@ class Track:
         self.remaining = remaining
         self.winning_score = winning_score
         self.forfeit_score = forfeit_score
-        self.scoreboard = scoreboard
+        self.scoreboard: Tree = scoreboard
         self.previous_stats = previous_stats
         self.previous_season_scoreboard = previous_season_scoreboard
 

@@ -1,6 +1,6 @@
 import math
 
-from config import MAX_ROUNDS
+from config import MAX_ROUNDS, apply_multiplier, MAX_PLAYERS
 from hash_table import HashTable
 from linked_list import List
 from match import Track, Match
@@ -75,6 +75,7 @@ class Tournament:
             winner, winner_score, loser, loser_score = match.run(track.winning_score, track.remaining)
             winners.insert(winner.player.name, winner)
             winner: TournamentStats = winner
+            loser: TournamentStats = loser
 
             # Update the winner profile.
             winner.win()
@@ -84,19 +85,53 @@ class Tournament:
             loser.loss()
             loser.add_score(loser_score, winner_score)
 
+            apply_multiplier(track.name, winner, loser_score)
+            self.update_points(loser, track)
+
         if track.round == MAX_ROUNDS:
             print('Tournament %s successfully complete for the %s\'s track' % (self.type.name, track.name))
-            print('Winner: %s' % winner.player.name)
+            print('Winner for the final round: %s' % winner.player.name)
+            self.update_points(winner, track)
             track.round += 1
+            self.print_scoreboard(track.name)
             return
 
         print('Winners for round %d:' % track.round)
 
-        for name, stats in winners:
+        for name, previous_stats in winners:
             print('- %s' % name)
 
         track.remaining = winners
         track.round += 1
 
+    def update_points(self, stats: TournamentStats, track: Track):
+        rank = MAX_PLAYERS - len(track.scoreboard)
+        points = self.season.circuit.ranking_points.find(rank, 0) * self.type.difficulty
+
+        if track.previous_stats is None:
+            points *= stats.multiplier
+        else:
+            previous_stats: TournamentStats = track.previous_stats.find(stats.player.name)
+            if stats.round_achieved >= previous_stats.round_achieved:
+                points *= stats.multiplier
+
+        stats.points = points
+        track.scoreboard.insert(stats.points, stats)
+
     def get_track(self, gender):
         return self.men_track if gender == 'men' else self.women_track
+
+    def print_scoreboard(self, gender):
+        track: Track = self.get_track(gender)
+
+        if track.round <= MAX_ROUNDS:
+            print('Track %s incomplete for tournament %s in season %s' % (gender, self.type.name, self.season.name))
+            return
+
+        print('Scoreboard for track %s in tournament %s' % (track.name, self.type.name))
+        rank = 1
+
+        for points, stats in track.scoreboard:
+            prize = self.type.prizes.find(rank, '0')
+            print('#%d. %s at %d points wins £%s' % (rank, stats.player.name, points, prize))
+            rank += 1

@@ -3,7 +3,7 @@ from hash_table import HashTable
 from linked_list import List
 from loader import save_circuit
 from pipe_sort import Sorter
-from player import CircuitStats, SeasonStats, TournamentStats
+from player import CircuitStats, SeasonStats, TournamentStats, Player
 from season import Season
 from tournament import Tournament
 from user_input import next_string
@@ -18,6 +18,7 @@ class CommandExecutor:
         self.commands.insert('quit', self.quit)
         self.commands.insert('exit', self.quit)
         self.commands.insert('start', self.start)
+        self.commands.insert('scoreboard', self.scoreboard)
         self.commands.insert('stats', self.stats)
         self.stats_commands = HashTable()
         self.stats_commands.insert('score', self.stats_score)
@@ -65,6 +66,35 @@ class CommandExecutor:
         # Start the tournament.
         season.run(tournament_name)
 
+    def scoreboard(self, args):
+        if len(args) == 0:
+            print('Circuit scoreboards are unsupported')
+            # TODO: Implement circuit scoreboards.
+            return
+
+        season: Season = self.circuit.seasons.find(args[0])
+
+        if season is None:
+            print('No season by the name %s was found' % args[0])
+            return
+
+        if len(args) > 1:
+            tournament: Tournament = season.tournaments.find(args[1])
+            if tournament is None:
+                print('No tournament by the name %s was found' % args[1])
+                return
+
+            if len(args) > 2:
+                gender = 'men' if args[2] == 'men' else 'women'
+                tournament.print_scoreboard(gender)
+            else:
+                print('Displaying scoreboards for both men and women tracks')
+                tournament.print_scoreboard('men')
+                tournament.print_scoreboard('women')
+            return
+
+        season.print_scoreboard()
+
     def stats(self, args):
         if len(args) == 0:
             self.print_circuit_stats('men')
@@ -80,12 +110,17 @@ class CommandExecutor:
         executor(args[1:])
 
     def stats_score(self, args):
-        player = self.get_player(args)
+        player: Player = self.get_player(args)
         if player is None:
             return
 
         if len(args) == 1:
-            print('Score not specified')
+            rows = 3
+            row_format = "| {:>15} |" * rows
+            print(row_format.format('Player Score', 'Opponent Score', 'Count'))
+            print(row_format.format('-' * 15, '-' * 15, '-' * 15))
+            for (our_score, opponent_score), count in player.stats.scores:
+                print(row_format.format(our_score, opponent_score, count))
             return
 
         scores = args[1].split(':')

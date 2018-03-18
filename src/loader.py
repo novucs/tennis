@@ -117,7 +117,7 @@ def load_round(file_name, context):
 def load_track(tournament, gender, track_round):
     stats = HashTable()
     remaining = HashTable()
-    scoreboard = Tree()
+    scoreboard = Tree(lambda a, b: b - a)
 
     with open('%s/%s/%s/%s.csv' % (OUTPUT, tournament.season.name, tournament.type.name, gender)) as the_file:
         for line in the_file:

@@ -69,7 +69,7 @@ class Season:
 
         track_round = 1
         remaining = stats.clone()
-        scoreboard = Tree()
+        scoreboard = Tree(lambda a, b: b - a)
 
         return Track(gender, track_round, stats, remaining, winning_score, forfeit_score, scoreboard, previous_stats,
                      previous_season_scoreboard)
@@ -79,3 +79,7 @@ class Season:
 
     def get_scoreboard(self, gender):
         return self.men_scoreboard if gender == 'men' else self.women_scoreboard
+
+    def print_scoreboard(self):
+        # TODO: Implement season scoreboards.
+        pass
