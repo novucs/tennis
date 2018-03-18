@@ -32,8 +32,8 @@ class Circuit:
             previous_season = self.current_season
             men_season_stats = self.create_season_stats(season_name, self.men)
             women_season_stats = self.create_season_stats(season_name, self.women)
-            men_scoreboard = self.create_scoreboard(self.men)
-            women_scoreboard = self.create_scoreboard(self.women)
+            men_scoreboard = self.create_scoreboard(men_season_stats)
+            women_scoreboard = self.create_scoreboard(women_season_stats)
             season = Season(self, previous_season, season_name, False, men_season_stats, women_season_stats,
                             men_scoreboard, women_scoreboard)
 

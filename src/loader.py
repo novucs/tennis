@@ -161,7 +161,7 @@ def load_track(tournament, gender, track_round):
 
 
 def load_season_player_scoreboard(season_stats):
-    sorter = Sorter(lambda a, b: a.points - b.points)
+    sorter = Sorter(lambda a, b: b.points - a.points)
     for name, player_stats in season_stats:
         sorter.consume(player_stats)
     return sorter.sort()
@@ -346,7 +346,6 @@ def load_circuit():
             season = Season(circuit, previous, name, complete, men_stats, women_stats, men_scoreboard, women_scoreboard)
             season.tournaments = load_tournaments(season)
 
-            # TODO: Create and sort season scoreboard.
             if not season.complete:
                 circuit.current_season = season
 

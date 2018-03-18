@@ -93,7 +93,9 @@ class CommandExecutor:
                 tournament.print_scoreboard('women')
             return
 
-        season.print_scoreboard()
+        print('Displaying scoreboards for both men and women tracks')
+        season.print_scoreboard('men')
+        season.print_scoreboard('women')
 
     def stats(self, args):
         if len(args) == 0:

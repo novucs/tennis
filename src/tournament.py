@@ -35,7 +35,7 @@ class Tournament:
             gender = next_gender('Select the track to play for the next round', self.men_track.round > MAX_ROUNDS)
 
             track = self.men_track if gender == MALE else self.women_track
-            self.play_track(track)
+            self.play_round(track)
 
             if self.men_track.round > MAX_ROUNDS and self.women_track.round > MAX_ROUNDS:
                 self.complete = True
@@ -44,7 +44,7 @@ class Tournament:
 
             running = next_bool('Would you like to start the next round?', True)
 
-    def play_track(self, track: Track):
+    def play_round(self, track: Track):
         if track.round > MAX_ROUNDS:
             print('This track is already complete')
             return
@@ -98,7 +98,7 @@ class Tournament:
 
         print('Winners for round %d:' % track.round)
 
-        for name, previous_stats in winners:
+        for name, stats in winners:
             print('- %s' % name)
 
         track.remaining = winners
@@ -115,7 +115,7 @@ class Tournament:
             if stats.round_achieved >= previous_stats.round_achieved:
                 points *= stats.multiplier
 
-        stats.points = points
+        stats.add_points(points)
         track.scoreboard.insert(stats.points, stats)
 
     def get_track(self, gender):

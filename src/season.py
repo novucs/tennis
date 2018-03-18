@@ -1,6 +1,7 @@
 from config import get_forfeit_score, get_winning_score
 from hash_table import HashTable
 from match import Track
+from pipe_sort import Sorter
 from player import TournamentStats, SeasonStats
 from ranked_tree import Tree
 from tournament import Tournament
@@ -48,6 +49,16 @@ class Season:
 
         tournament.run()
 
+        # Sort scoreboards to adjust for the new results.
+        self.sort_scoreboard('men')
+        self.sort_scoreboard('women')
+
+        if len(self.tournaments) == len(self.circuit.tournament_types):
+            self.complete = True
+            print('Season %s has successfully complete!' % self.name)
+            self.print_scoreboard('men')
+            self.print_scoreboard('women')
+
     def create_track(self, tournament, gender):
         stats = HashTable()
 
@@ -80,6 +91,25 @@ class Season:
     def get_scoreboard(self, gender):
         return self.men_scoreboard if gender == 'men' else self.women_scoreboard
 
-    def print_scoreboard(self):
-        # TODO: Implement season scoreboards.
-        pass
+    def set_scoreboard(self, gender, scoreboard):
+        if gender == 'men':
+            self.men_scoreboard = scoreboard
+        else:
+            self.women_scoreboard = scoreboard
+
+    def print_scoreboard(self, gender):
+        print('Scoreboard for track %s in season %s' % (gender, self.name))
+        rank = 1
+        scoreboard = self.get_scoreboard(gender)
+        for stats in scoreboard:
+            print('#%d. %s at %d points' % (rank, stats.player.name, stats.points))
+            rank += 1
+
+    def sort_scoreboard(self, gender):
+        scoreboard = self.get_scoreboard(gender)
+        sorter = Sorter(lambda a, b: b.points - a.points)
+
+        for stats in scoreboard:
+            sorter.consume(stats)
+
+        self.set_scoreboard(gender, sorter.sort())
