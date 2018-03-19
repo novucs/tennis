@@ -23,7 +23,7 @@ class CommandExecutor:
         self.stats_commands = HashTable()
         self.stats_commands.insert('score', self.stats_score)
         self.stats_commands.insert('wins', self.stats_wins)
-        self.stats_commands.insert('losses', self.stats_losses)
+        self.stats_commands.insert('losses', self.stats_wins)
 
     def run(self):
         print('Type "help" to see all commands.')
@@ -148,20 +148,13 @@ class CommandExecutor:
         if stats is None:
             return
 
-        count = stats.wins
-        print('%s has won %d times' % (player.name, count))
+        if stats.wins + stats.losses == 0:
+            percent_success = 0
+        else:
+            percent_success = int(100 * stats.wins / float(stats.wins + stats.losses))
 
-    def stats_losses(self, args):
-        player = self.get_player(args)
-        if player is None:
-            return
-
-        stats = self.get_stats(args[1:], player.stats)
-        if stats is None:
-            return
-
-        count = stats.losses
-        print('%s has won %d times' % (player.name, count))
+        print('%s has won %d times and lost %d times with %d percent success' % (
+            player.name, stats.wins, stats.losses, percent_success))
 
     def print_circuit_stats(self, gender: str):
         season: Season = self.circuit.current_season

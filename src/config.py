@@ -30,7 +30,7 @@ Shows the scoreboard for the given season or tournament.
 > stats
 Shows the player with most wins and player with most losses.
 
-> stats score <player> <score> [season] [tournament]
+> stats score <player> [score] [season] [tournament]
 Gets number of times a player got a specific score in a tournament or season.
 
 > stats wins <player> [season] [tournament]
