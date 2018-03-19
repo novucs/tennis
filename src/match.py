@@ -34,7 +34,7 @@ class Track:
 
     def update_previous_winners(self):
         for name, stats in self.previous_stats:
-            if stats.round_achieved > self.round:
+            if stats.round_achieved > self.round and self.remaining.find(name) is not None:
                 self.previous_winners.insert(name, stats)
 
 
@@ -113,10 +113,11 @@ class Match:
             player_a_winner: bool = self.is_previous_winner(self.player_name_a)
             player_b_winner: bool = self.is_previous_winner(self.player_name_b)
 
-            while player_a_winner and player_b_winner:
+            while not (player_a_winner ^ player_b_winner):
                 print("Players %s and %s may not play each other as they're "
-                      "both winners of this tournament for the previous "
-                      "season" % (self.player_name_a, self.player_name_b))
+                      "both %s of this tournament for the previous "
+                      "season" % (self.player_name_a, self.player_name_b,
+                                  'winners' if player_a_winner else 'losers'))
                 self.player_name_b = next_string('Enter player B')
                 self.player_name_b = self.ensure_player_exists(self.player_name_b, player_stats)
                 player_b_winner: bool = self.is_previous_winner(self.player_name_b)
