@@ -68,8 +68,7 @@ class CommandExecutor:
 
     def scoreboard(self, args):
         if len(args) == 0:
-            print('Circuit scoreboards are unsupported')
-            # TODO: Implement circuit scoreboards.
+            print('Invalid syntax. Usage: scoreboard <season> [tournament]')
             return
 
         season: Season = self.circuit.seasons.find(args[0])
