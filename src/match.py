@@ -16,6 +16,26 @@ class Track:
         self.scoreboard: Tree = scoreboard
         self.previous_stats = previous_stats
         self.previous_season_scoreboard = previous_season_scoreboard
+        self.player_count = MAX_PLAYERS
+
+        # Find and cache all the players considered highly ranked from the
+        # previous season scoreboard.
+        self.high_ranked = HashTable()
+
+        if self.previous_season_scoreboard is not None:
+            rank = 0
+            for stats in self.previous_season_scoreboard:
+                rank += 1
+                if rank > (MAX_PLAYERS / 2):
+                    break
+                self.high_ranked.insert(stats.player.name, True)
+
+        self.previous_winners = HashTable()
+
+    def update_previous_winners(self):
+        for name, stats in self.previous_stats:
+            if stats.round_achieved > self.round:
+                self.previous_winners.insert(name, stats)
 
 
 class Match:
@@ -68,19 +88,9 @@ class Match:
             return
 
         if self.track.round == 1:
-            # Find and cache all the players considered highly ranked from the
-            # previous season scoreboard.
-            high_ranked = HashTable()
-            rank = 0
-            for stats in self.track.previous_season_scoreboard:
-                rank += 1
-                if rank > (MAX_PLAYERS / 2):
-                    break
-                high_ranked.insert(stats.player.name, True)
-
             # Ensure both players were not ranked the same half for the previous seasons.
-            player_a_high_ranked: bool = high_ranked.find(self.player_name_a, False)
-            player_b_high_ranked: bool = high_ranked.find(self.player_name_b, False)
+            player_a_high_ranked: bool = self.track.high_ranked.find(self.player_name_a, False)
+            player_b_high_ranked: bool = self.track.high_ranked.find(self.player_name_b, False)
 
             # Check if both players are similarly ranked ...
             while player_a_high_ranked == player_b_high_ranked:
@@ -90,19 +100,33 @@ class Match:
                       (self.player_name_a, self.player_name_b, "high" if player_a_high_ranked else "low"))
                 self.player_name_b = next_string('Enter player B')
                 self.player_name_b = self.ensure_player_exists(self.player_name_b, player_stats)
-                player_b_high_ranked: bool = high_ranked.find(self.player_name_b, False)
+                player_b_high_ranked: bool = self.track.high_ranked.find(self.player_name_b, False)
+
+            self.track.high_ranked.delete(self.player_name_a)
+            self.track.high_ranked.delete(self.player_name_b)
         elif self.track.previous_stats is not None:
+            # Do not enforce match seeding when impossible to do so.
+            if len(self.track.previous_winners) == 0 or len(self.track.previous_winners) == self.track.player_count:
+                return
+
             # Ensure both players were not winners for the previous seasons tournament.
             player_a_winner: bool = self.is_previous_winner(self.player_name_a)
             player_b_winner: bool = self.is_previous_winner(self.player_name_b)
 
             while player_a_winner and player_b_winner:
+                print("Players %s and %s may not play each other as they're "
+                      "both winners of this tournament for the previous "
+                      "season" % (self.player_name_a, self.player_name_b))
                 self.player_name_b = next_string('Enter player B')
                 self.player_name_b = self.ensure_player_exists(self.player_name_b, player_stats)
                 player_b_winner: bool = self.is_previous_winner(self.player_name_b)
 
+        # Remove previous winners from mapping, we're no longer using them.
+        self.track.previous_winners.delete(self.player_name_a)
+        self.track.previous_winners.delete(self.player_name_b)
+
     def is_previous_winner(self, player_name):
-        return self.track.previous_stats.find(player_name).round > self.track.round
+        return self.track.previous_winners.find(player_name) is not None
 
     def validate_scores(self, winning_score):
         while True:

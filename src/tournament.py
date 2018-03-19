@@ -69,6 +69,8 @@ class Tournament:
                 match = Match(track)
                 matches.append(match)
 
+        track.update_previous_winners()
+
         # Run each match.
         for match in matches:
             # Find the winner and add them to the next batch.
