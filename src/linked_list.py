@@ -228,3 +228,27 @@ class List:
             target_array[i] = next(iterator)
 
         return target_array
+
+    def first(self):
+        """Gets the first element in the list.
+
+        :return: The first element if found, otherwise None.
+        """
+        return None if self._first is None else self._first.item
+
+    def last(self):
+        """Gets the last element in the list.
+
+        :return: The last element if found, otherwise None.
+        """
+        return None if self._last is None else self._last.item
+
+    def clone(self):
+        """Shallow-clones the list elements into a new list.
+
+        :return: The cloned list.
+        """
+        target = List()
+        for element in self:
+            target.append(element)
+        return target

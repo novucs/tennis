@@ -68,18 +68,29 @@ class Match:
             return
 
         if self.track.round == 1:
+            # Find and cache all the players considered highly ranked from the
+            # previous season scoreboard.
+            high_ranked = HashTable()
+            rank = 0
+            for stats in self.track.previous_season_scoreboard:
+                rank += 1
+                if rank > (MAX_PLAYERS / 2):
+                    break
+                high_ranked.insert(stats.player.name, True)
+
             # Ensure both players were not ranked the same half for the previous seasons.
-            player_a_high_ranked: bool = self.is_high_ranked(self.player_name_a)
-            player_b_high_ranked: bool = self.is_high_ranked(self.player_name_b)
+            player_a_high_ranked: bool = high_ranked.find(self.player_name_a, False)
+            player_b_high_ranked: bool = high_ranked.find(self.player_name_b, False)
 
             # Check if both players are similarly ranked ...
             while player_a_high_ranked == player_b_high_ranked:
                 # ... get user to re-enter different user so they're not
                 #     similarly ranked.
-                print("Players may not play each other as they're both %s ranked" %
-                      ("high" if player_a_high_ranked else "low"))
+                print("Players %s and %s may not play each other as they're both %s ranked" %
+                      (self.player_name_a, self.player_name_b, "high" if player_a_high_ranked else "low"))
+                self.player_name_b = next_string('Enter player B')
                 self.player_name_b = self.ensure_player_exists(self.player_name_b, player_stats)
-                player_b_high_ranked: bool = self.is_high_ranked(self.player_name_b)
+                player_b_high_ranked: bool = high_ranked.find(self.player_name_b, False)
         elif self.track.previous_stats is not None:
             # Ensure both players were not winners for the previous seasons tournament.
             player_a_winner: bool = self.is_previous_winner(self.player_name_a)
@@ -92,9 +103,6 @@ class Match:
 
     def is_previous_winner(self, player_name):
         return self.track.previous_stats.find(player_name).round > self.track.round
-
-    def is_high_ranked(self, player_name):
-        return self.track.previous_season_scoreboard.rank(player_name) > (MAX_PLAYERS / 2)
 
     def validate_scores(self, winning_score):
         while True:

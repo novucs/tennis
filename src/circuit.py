@@ -1,15 +1,17 @@
 from hash_table import HashTable
+from linked_list import List
 from player import SeasonStats, CircuitStats
 from season import Season
 from user_input import next_string
 
 
 class Circuit:
-    def __init__(self, current_season=None, seasons=HashTable(), men=HashTable(), women=HashTable(),
+    def __init__(self, ordered_seasons=List(), seasons=HashTable(), men=HashTable(), women=HashTable(),
                  tournament_types=HashTable(), ranking_points=HashTable()):
         self.running = True
-        self.current_season = current_season
         self.seasons = seasons.clone()
+        self.ordered_seasons = ordered_seasons.clone()
+        self.current_season = self.ordered_seasons.last()
         self.men = men.clone()
         self.women = women.clone()
         self.tournament_types = tournament_types.clone()
@@ -39,6 +41,7 @@ class Circuit:
 
             self.current_season = season
             self.seasons.insert(season_name.lower(), season)
+            self.ordered_seasons.append(season)
             return self.current_season
 
     @staticmethod

@@ -345,11 +345,9 @@ def load_circuit():
 
             season = Season(circuit, previous, name, complete, men_stats, women_stats, men_scoreboard, women_scoreboard)
             season.tournaments = load_tournaments(season)
-
-            if not season.complete:
-                circuit.current_season = season
-
             circuit.seasons.insert(name, season)
+            circuit.ordered_seasons.append(season)
+            circuit.current_season = season
 
     return circuit
 
@@ -418,8 +416,8 @@ def save_circuit(circuit: Circuit):
     filename = '%s/progress.csv' % OUTPUT
     prepare_persist(filename)
     with open(filename, 'a') as the_file:
-        for name, season in circuit.seasons:
-            the_file.write('%s,%s\n' % (name, season.complete))
+        for season in circuit.ordered_seasons:
+            the_file.write('%s,%s\n' % (season.name, season.complete))
 
     save_circuit_player_stats('men', circuit.men)
     save_circuit_player_stats('women', circuit.women)
