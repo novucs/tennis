@@ -378,6 +378,7 @@ def load_tournament_types(tournaments):
                     tournament = TournamentType(current_name, prizes, current_difficulty)
                     tournaments.insert(current_name, tournament)
                     current_name = name
+                    current_difficulty = float(difficulty)
                     prizes = HashTable()
 
             prizes.insert(place, prize)
