@@ -66,10 +66,6 @@ class Season:
 
         tournament.run()
 
-        # Sort scoreboards to adjust for the new results.
-        # self.sort_scoreboard('men')
-        # self.sort_scoreboard('women')
-
         if len(self.tournaments) == len(self.circuit.tournament_types):
             self.complete = True
             print('Season %s has successfully complete!' % self.name)
