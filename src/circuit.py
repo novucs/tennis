@@ -22,7 +22,7 @@ class Circuit:
             return self.current_season
 
         while True:
-            season_name = next_string('Enter a new season name')
+            season_name = next_string('Enter a new season name', 'season%d' % (len(self.seasons) + 1))
 
             if season_name is None:
                 continue

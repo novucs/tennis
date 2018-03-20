@@ -33,9 +33,10 @@ class Track:
         self.previous_winners = HashTable()
 
     def update_previous_winners(self):
-        for name, stats in self.previous_stats:
-            if stats.round_achieved > self.round and self.remaining.find(name) is not None:
-                self.previous_winners.insert(name, stats)
+        if self.previous_stats is not None:
+            for name, stats in self.previous_stats:
+                if stats.round_achieved > self.round and self.remaining.find(name) is not None:
+                    self.previous_winners.insert(name, stats)
 
 
 class Match:
