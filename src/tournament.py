@@ -155,7 +155,7 @@ class Tournament:
                 multiplier = get_multiplier(track.name, loser_score)
                 total_points += points * multiplier
 
-        stats.add_points(total_points)
+        stats.add_points(total_points * self.type.difficulty)
         track.scoreboard.insert(stats.points, stats)
 
     def get_track(self, gender):
