@@ -1,19 +1,96 @@
-# DADSA Assignment 1
+# DADSA Assignment 2
 **A tennis player ranking system.**
 
-Takes in the score of each match for a given tournament and updates each
-players position, calculates each players ranking points and produces a list
-of the players ranking in descending order.
+Takes scores for a group of tennis tournaments dubbed circuits, and produces
+useful stats, efficiently.
 
-## Solutions
-This system can be designed in two different ways, depending on how data is
-presented to the application: static, and streamed.
+## Startup
+Requires Python 3. This project was tested using Python 3.6.3.
 
-### Stream
-Data could be streamed into the application if games are still ongoing.
-Players in this state may still score points, thus changing their position in
-the current tournament. Therefore an algorithm that can quickly update
-individual positions in the tournament should be favoured.
+Please unzip project before running.
+
+### Windows
+_Tested with computers provided in UWE Frenchay campus 3Q85_
+
+To run the program:
+
+Double click `RUN.bat`
+
+To reset the previous session data:
+
+Either delete output folder, or double click `CLEAN_PREVIOUS_SESSIONS.bat`
+
+### Linux
+First, ensure you are in the source directory:
+
+`cd src`
+
+To run the program:
+
+`python main.py`
+
+### Usage
+On first running the program, all errors and duplicated lines found in the
+configuration files located under `resources` and `src/config.py` will be
+brought to the attention of the user to resolve. The program should ignore any
+potential user errors and proceed, but it is important to keep note of them.
+
+Once all errors have been resolved, the command line interface will be brought
+up. All commands may be written at the cursor position denoted by `> `. There
+are a wide range of commands to select from, given as follows:
+
+#### Displays all commands
+```
+help
+```
+
+#### Quits the program.
+```
+quit
+```
+
+#### Starts the next tournament.
+```
+start <tournament>
+```
+
+#### Shows the scoreboard for the given season or tournament.
+```
+scoreboard <season> [tournament]
+```
+
+#### Shows the player with most wins and player with most losses.
+```
+stats
+```
+
+#### Gets number of times a player got a specific score in a tournament or season.
+```
+stats score <player> [score] [season] [tournament]
+```
+
+#### Gets total number of times a player won in a tournament, season, or overall.
+```
+stats wins <player> [season] [tournament]
+```
+
+#### Gets total number of times a player lost in a tournament, season, or overall.
+```
+stats losses <player> [season] [tournament]
+```
+
+## Performance Justifications
+
+### Streamed Ranking
+Each time a match is executed, the program will automatically keep the
+tournament ranking updated. I have chosen to retain this functionality as in
+the likely event later specifications require statistics throughout the
+tournament progress. Players that have lost the tournament may have their
+ranking points immediately calculated, thus gives us the ability of knowing
+their tournament position before the tournament being complete. The backing
+order-statistic tree that supports this feature also provides `O(log n)` user
+ranking. Fast user ranking is another desirable feature for statistics based
+programs such as this, and is likely to be required in future updates.
 
 A well-programmed sort algorithm will have an average sort time complexity of
 `O(n log n)`. However self balancing trees tend to have modification time
@@ -21,14 +98,6 @@ complexities of `O(log n)`. Since we are optimising for sorting on individual
 element modifications, it would be very expensive to reorganize and verify the
 entire data structure. A self balancing tree would then be the most optimal
 route to take when streaming data.
-
-We must take into account that third parties, whom are feeding us the data, may
-not understand nor wish to feed us our direct object references. Instead we
-will probably be given either player names or other types of identification.
-These can be used as keys which may then be used for indexing our own player
-profiles. Hash tables provide a speedy average lookup time of `O(1)` for this
-operation, so these will be used as a form of compatibility when interfacing
-with the data provider.
 
 #### Red-black order statistic tree
 - Space complexity: `O(n)`
@@ -47,25 +116,33 @@ with the data provider.
   of a specified player. Each node is given a size, which can be used for
   performing these `O(log n)` operations.
 
+### Indexing
+We must take into account that third parties, whom are feeding us the data, may
+not understand nor wish to feed us our direct object references. Instead we
+will probably be given either player names or other types of identification.
+These can be used as keys which may then be used for indexing our own player
+profiles. Hash tables provide a speedy average lookup time of `O(1)` for this
+operation, so these will be used as a form of compatibility when interfacing
+with the data provider.
+
 #### Hash table
 - Space complexity: `O(n)`
 - Best case search, insertion and deletion: `O(1)`
 - Average case search, insertion and deletion: `O(1)`
 - Worst case search, insertion and deletion: `O(n)`
 
-### Static
-Static (immutable) data may be provided to the application if all games are
-finished. We can still use the solution provided with streamed data. Though
-there are some downfalls that can be avoided since we are certain the data
-cannot change.
-
-Some operations in our previous solution have a worst case time complexity of
+### Sorting
+Season scoreboards are calculated quite differently. This program provides the
+season updates on batch (i.e. after a round ends), therefore a more appropriate
+algorithm for maintaining an ordered collection should be chosen. Some
+operations in our tournament solution have a worst case time complexity of
 `O(n)`, therefore processing the entire data set will give us an overall worst
 case time complexity of `O(n^2)`. As stated before, there are sorting
 algorithms that provide a worst case scenario of `O(n log n)`. Sorting is also
 able to put the data into an array data structure. Arrays have a guaranteed
 lookup time of `O(1)`, which is more optimal than the trees `O(log n)`. Hence
-a sorting algorithm would be better than a tree for static data.
+a sorting algorithm would be better than a tree for less frequently updated
+data.
 
 This then leaves the question "What sorting algorithm should be used?". There
 tons of different sorting algorithms, all with their own sets of advantages and
@@ -108,63 +185,6 @@ runs. We know all the data is sorted once there is only a single run remaining.
   - Best: `O(n)`
   - Average: `O(n log n)`
   - Worst: `O(n log n)`
-
-## User interface
-The static solutions method of taking in data is via the default files as
-provided for the assignment. This makes sense as we do not expect this data to
-change at all during the player ranking and reward finding process. One change
-was made to the provided files, since I dislike having hardcoded values in my
-programs. I added the difficulty level of each tournament when they're defined
-in the `tournaments.csv` file as an extra column. Other than that, they are as
-they were provided.
-
-Whereas in the solution for streamed data, I decided to take an entirely
-different route as we are expecting the data to come in at different times and
-want to update the leader boards live. I introduced a method of receiving user
-input via command line, using a state-based model to easily parse all the
-required information on tournaments. This means when each game is running, it's
-possible to update the player scores and each of the leader boards become
-automatically updated and sorted.
-
-Both solutions offer the ability to pause and save all circuit data for another
-day by pressing `CTRL+C` at any point during the score creation process. To
-continue from the previous state, simply re-run the program. The streamed
-implementation offers the ability to discard and overwrite the previous circuit
-data upon re-run. The same affect can be achieved simply through manually
-deleting the programs relevant `output` sub-directory.
-
-## How to run
-Requires Python 3. This project was tested using Python 3.6.3.
-
-Please unzip project before running.
-
-### Windows
-_Tested with computers provided in UWE Frenchay campus 3Q85_
-
-To run the static solution:
-
-Double click `RUN_STATIC_SOLUTION.bat`
-
-To run the stream solution:
-
-Double click `RUN_STREAMED_SOLUTION.bat`
-
-To reset the previous session data:
-
-Either delete output folder, or double click `CLEAN_PREVIOUS_SESSIONS.bat`
-
-### Linux
-First, ensure you are in the source directory:
-
-`cd src`
-
-To run the static solution:
-
-`python solution_static.py`
-
-To run the stream solution:
-
-`python solution_stream.py`
 
 ## Other notes
 - The library numpy was used in this project, not for ease of use but to
