@@ -148,7 +148,7 @@ def load_track(tournament, gender, track_round):
     """
     stats = HashTable()
     remaining = HashTable()
-    scoreboard = Tree(lambda a, b: b - a)
+    sorter = Sorter(lambda a, b: b.round_achieved - a.round_achieved)
 
     with open('%s/%s/%s/%s.csv' % (OUTPUT, tournament.season.name, tournament.type.name, gender)) as the_file:
         for line in the_file:
@@ -179,7 +179,15 @@ def load_track(tournament, gender, track_round):
                 remaining.insert(player_name, tournament_stats)
 
             if tournament.complete or track_round > round_achieved:
-                scoreboard.insert(points, tournament_stats)
+                sorter.consume(tournament_stats)
+
+    scoreboard = sorter.sort()
+
+    if not tournament.complete:
+        linked_scoreboard = List()
+        for stats in scoreboard:
+            linked_scoreboard.append(stats)
+        scoreboard = linked_scoreboard
 
     winning_score = get_winning_score(gender)
     forfeit_score = get_forfeit_score(gender)
@@ -201,10 +209,10 @@ def load_season_player_scoreboard(season_stats):
     :param season_stats: The seasons player statistics.
     :return: The sorted player statistics for the given season.
     """
-    sorter = Sorter(lambda a, b: b.points - a.points)
+    scoreboard = Tree(lambda a, b: b - a)
     for name, player_stats in season_stats:
-        sorter.consume(player_stats)
-    return sorter.sort()
+        scoreboard.insert(player_stats.points, player_stats)
+    return scoreboard
 
 
 def load_season_player_stats(season_name, gender, circuit_players):

@@ -5,6 +5,7 @@ from hash_table import HashTable
 from linked_list import List
 from match import Track, Match
 from player import TournamentStats
+from ranked_tree import Tree
 from user_input import next_gender, next_bool, next_input_type, FILE, next_string, MALE
 
 
@@ -155,8 +156,11 @@ class Tournament:
                 multiplier = get_multiplier(track.name, loser_score)
                 total_points += points * multiplier
 
+        season_scoreboard: Tree = self.season.get_scoreboard(track.name)
+        season_scoreboard.delete(stats.season.points, stats.season)
         stats.add_points(total_points * self.type.difficulty)
-        track.scoreboard.insert(stats.points, stats)
+        season_scoreboard.insert(stats.season.points, stats.season)
+        track.scoreboard.append_front(stats)
 
     def get_track(self, gender):
         """Gets the track of this tournament for a gender.
@@ -180,7 +184,7 @@ class Tournament:
         print('Scoreboard for track %s in tournament %s' % (track.name, self.type.name))
         rank = 1
 
-        for points, stats in track.scoreboard:
+        for stats in track.scoreboard:
             prize = self.type.prizes.find(rank, '0')
-            print('#%d. %s at %d points wins £%s' % (rank, stats.player.name, points, prize))
+            print('#%d. %s at %d points wins £%s' % (rank, stats.player.name, stats.points, prize))
             rank += 1

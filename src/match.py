@@ -1,6 +1,6 @@
 from config import MAX_PLAYERS
 from hash_table import HashTable
-from ranked_tree import Tree
+from linked_list import List
 from user_input import next_string, next_int, next_bool
 
 
@@ -30,7 +30,7 @@ class Track:
         self.remaining = remaining
         self.winning_score = winning_score
         self.forfeit_score = forfeit_score
-        self.scoreboard: Tree = scoreboard
+        self.scoreboard: List = scoreboard
         self.previous_stats = previous_stats
         self.previous_season_scoreboard = previous_season_scoreboard
         self.player_count = MAX_PLAYERS
@@ -41,7 +41,7 @@ class Track:
 
         if self.previous_season_scoreboard is not None:
             rank = 0
-            for stats in self.previous_season_scoreboard:
+            for points, stats in self.previous_season_scoreboard:
                 rank += 1
                 if rank > (MAX_PLAYERS / 2):
                     break

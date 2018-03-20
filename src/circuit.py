@@ -1,6 +1,7 @@
 from hash_table import HashTable
 from linked_list import List
 from player import SeasonStats, CircuitStats
+from ranked_tree import Tree
 from season import Season
 from user_input import next_string
 
@@ -71,11 +72,9 @@ class Circuit:
         :param profiles: The player profiles used add to the new scoreboard.
         :return: The newly created, unordered, scoreboard.
         """
-        scoreboard = [None] * len(profiles)
-        i = 0
-        for _, player in profiles:
-            scoreboard[i] = player
-            i += 1
+        scoreboard = Tree(lambda a, b: b - a)
+        for name, stats in profiles:
+            scoreboard.insert(stats.points, stats)
         return scoreboard
 
     @staticmethod

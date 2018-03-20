@@ -1,9 +1,9 @@
 from config import get_forfeit_score, get_winning_score
 from hash_table import HashTable
+from linked_list import List
 from match import Track
 from pipe_sort import Sorter
 from player import TournamentStats, SeasonStats
-from ranked_tree import Tree
 from tournament import Tournament
 
 
@@ -67,8 +67,8 @@ class Season:
         tournament.run()
 
         # Sort scoreboards to adjust for the new results.
-        self.sort_scoreboard('men')
-        self.sort_scoreboard('women')
+        # self.sort_scoreboard('men')
+        # self.sort_scoreboard('women')
 
         if len(self.tournaments) == len(self.circuit.tournament_types):
             self.complete = True
@@ -104,7 +104,7 @@ class Season:
 
         track_round = 1
         remaining = stats.clone()
-        scoreboard = Tree(lambda a, b: b - a)
+        scoreboard = List()
 
         return Track(gender, track_round, stats, remaining, winning_score, forfeit_score, scoreboard, previous_stats,
                      previous_season_scoreboard)
@@ -140,19 +140,6 @@ class Season:
         print('Scoreboard for track %s in season %s' % (gender, self.name))
         rank = 1
         scoreboard = self.get_scoreboard(gender)
-        for stats in scoreboard:
+        for points, stats in scoreboard:
             print('#%d. %s at %d points' % (rank, stats.player.name, stats.points))
             rank += 1
-
-    def sort_scoreboard(self, gender):
-        """Sorts the scoreboard for a gender.
-
-        :param gender: The gender of the track for the scoreboard to sort.
-        """
-        scoreboard = self.get_scoreboard(gender)
-        sorter = Sorter(lambda a, b: b.points - a.points)
-
-        for stats in scoreboard:
-            sorter.consume(stats)
-
-        self.set_scoreboard(gender, sorter.sort())
