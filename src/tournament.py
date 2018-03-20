@@ -9,6 +9,15 @@ from user_input import next_gender, next_bool, next_input_type, FILE, next_strin
 
 
 class TournamentType:
+    """Represents a type of tournament, used for storing the configuration data
+    from ../resources/tournaments.csv
+
+    Attributes:
+        name: The name of the tournament.
+        prizes: The prizes to win, indexed by rank.
+        difficulty: The difficulty multiplier.
+    """
+
     def __init__(self, name: str, prizes: HashTable, difficulty: float):
         self.name = name
         self.prizes = prizes
@@ -16,6 +25,17 @@ class TournamentType:
 
 
 class Tournament:
+    """A tournament, held in the season.
+
+    Attributes:
+        type: The type of tournament this is.
+        season: The season this tournament was held in.
+        previous: The same type of tournament held last season.
+        complete: True when the tournament is complete.
+        men_track: The men's track for this tournament.
+        women_track: The women's track for this tournament.
+    """
+
     def __init__(self, season, tournament_type: TournamentType, previous, complete):
         self.type = tournament_type
         self.season = season
@@ -25,6 +45,7 @@ class Tournament:
         self.women_track: Track = None
 
     def run(self):
+        """Runs the tournament."""
         if self.complete:
             print("Tournament is already complete")
             return
@@ -45,6 +66,10 @@ class Tournament:
             running = next_bool('Would you like to start the next round?', True)
 
     def play_round(self, track: Track):
+        """Plays a round in the tournament for a track.
+
+        :param track: The track that is playing this round.
+        """
         if track.round > MAX_ROUNDS:
             print('This track is already complete')
             return
@@ -107,6 +132,12 @@ class Tournament:
         track.round += 1
 
     def update_points(self, stats: TournamentStats, track: Track):
+        """Updates the points of a players stats once they've either lost the
+        tournament, or the tournament has been complete.
+
+        :param stats: The players statistics profile for this tournament.
+        :param track: The track the player is in.
+        """
         rank = MAX_PLAYERS - len(track.scoreboard)
         points = self.season.circuit.ranking_points.find(rank, 0) * self.type.difficulty
 
@@ -121,9 +152,18 @@ class Tournament:
         track.scoreboard.insert(stats.points, stats)
 
     def get_track(self, gender):
+        """Gets the track of this tournament for a gender.
+
+        :param gender: The gender of the track to get.
+        :return the track.
+        """
         return self.men_track if gender == 'men' else self.women_track
 
     def print_scoreboard(self, gender):
+        """Prints a scoreboard for a track of this tournament.
+
+        :param gender: The gender of the track.
+        """
         track: Track = self.get_track(gender)
 
         if track.round <= MAX_ROUNDS:

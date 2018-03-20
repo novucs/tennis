@@ -54,14 +54,28 @@ if MAX_ROUNDS % 1 != 0:
 
 
 def get_winning_score(gender):
+    """Gets the winning score for a specific gender.
+
+    :param gender: The gender to get the winning score of.
+    """
     return MEN_WIN_SCORE if gender == 'men' else WOMEN_WIN_SCORE
 
 
 def get_forfeit_score(gender):
+    """Gets the forfeit score for a specific gender.
+
+    :param gender: The gender to get the forfeit score of.
+    """
     return MEN_FORFEIT_SCORE if gender == 'men' else WOMEN_FORFEIT_SCORE
 
 
 def apply_multiplier(gender, winner, loser_score):
+    """Applies a multiplier to a player that has recently won a match.
+
+    :param gender: The gender of the player to add the multiplier to.
+    :param winner: The winner of the match.
+    :param loser_score: The score the looser achieved.
+    """
     if gender == 'men':
         if loser_score == 0:
             winner.multiplier += 2.5

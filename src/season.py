@@ -8,6 +8,19 @@ from tournament import Tournament
 
 
 class Season:
+    """A season, contains multiple tournaments and retains a scoreboard for
+    both men and women player tracks.
+
+    Attributes:
+        circuit: The tournament circuit this season uses.
+        previous: The previous season in this circuit.
+        name: The name of the season.
+        men_stats: Maps all male player names to their season statistics.
+        women_stats: Maps all female player names to their season statistics.
+        men_scoreboard: An array of male statistics for this season sorted by points.
+        women_scoreboard: An array of female statistics for this season sorted by points.
+    """
+
     def __init__(self, circuit, previous, name: str, complete: bool, men_stats, women_stats, men_scoreboard,
                  women_scoreboard):
         self.circuit = circuit
@@ -21,6 +34,10 @@ class Season:
         self.tournaments = HashTable()  # <tournament name, tournament>
 
     def run(self, tournament_name):
+        """Runs the season, given a tournament name.
+
+        :param tournament_name: The tournament to run.
+        """
         tournament: Tournament = self.tournaments.find(tournament_name)
 
         if tournament is None:
@@ -60,6 +77,13 @@ class Season:
             self.print_scoreboard('women')
 
     def create_track(self, tournament, gender):
+        """Creates a new track for a given tournament and gender. Starts off
+        with an empty scoreboard and mappings for the player stats.
+
+        :param tournament: The tournament to create the track for.
+        :param gender: The gender of the track to create.
+        :return: The newly created track.
+        """
         stats = HashTable()
 
         for player_name, player_profile in self.circuit.get_players(gender):
@@ -86,18 +110,33 @@ class Season:
                      previous_season_scoreboard)
 
     def get_stats(self, gender):
+        """Gets the season stat mappings for a given gender.
+
+        :param gender: The track gender.
+        :return: The stat mappings.
+        """
         return self.men_stats if gender == 'men' else self.women_stats
 
     def get_scoreboard(self, gender):
         return self.men_scoreboard if gender == 'men' else self.women_scoreboard
 
     def set_scoreboard(self, gender, scoreboard):
+        """Updates the scoreboard for a given gender in the season.
+
+        :param gender: The gender of the track scoreboard to update.
+        :param scoreboard: The new scoreboard to update the current with.
+        """
         if gender == 'men':
             self.men_scoreboard = scoreboard
         else:
             self.women_scoreboard = scoreboard
 
     def print_scoreboard(self, gender):
+        """Prints the scoreboard for the season, given the gender of the
+        scoreboard track to print.
+
+        :param gender: The gender of the track to use in printing the scoreboard.
+        """
         print('Scoreboard for track %s in season %s' % (gender, self.name))
         rank = 1
         scoreboard = self.get_scoreboard(gender)
@@ -106,6 +145,10 @@ class Season:
             rank += 1
 
     def sort_scoreboard(self, gender):
+        """Sorts the scoreboard for a gender.
+
+        :param gender: The gender of the track for the scoreboard to sort.
+        """
         scoreboard = self.get_scoreboard(gender)
         sorter = Sorter(lambda a, b: b.points - a.points)
 

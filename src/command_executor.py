@@ -10,6 +10,18 @@ from user_input import next_string
 
 
 class CommandExecutor:
+    """Main programs command executor, handles all commands executed by the
+    user.
+
+    Attributes:
+        circuit: The current circuit to work with.
+        running: Whether the program should continue to run, or False if the
+                 user requested to exit the program.
+        commands: All command mappings from string to function.
+        stats_commands: All command mappings of statistic sub-commands from
+                        string to function.
+    """
+
     def __init__(self, circuit):
         self.circuit = circuit
         self.running = True
@@ -26,6 +38,7 @@ class CommandExecutor:
         self.stats_commands.insert('losses', self.stats_wins)
 
     def run(self):
+        """Runs the command executor."""
         print('Type "help" to see all commands.')
 
         while self.running:
@@ -33,6 +46,10 @@ class CommandExecutor:
             self.execute(command)
 
     def execute(self, command):
+        """Executes a command given by the user.
+
+        :param command: The command to execute.
+        """
         if command is None:
             return
 
@@ -50,13 +67,26 @@ class CommandExecutor:
 
     @staticmethod
     def help(args):
+        """Prints the help message.
+
+        :param args: The user arguments.
+        """
         print(HELP_MESSAGE)
 
     def quit(self, args):
+        """Quits the program.
+
+        :param args: The user arguments.
+        """
         save_circuit(self.circuit)
         self.running = False
 
     def start(self, args):
+        """Starts a new tournament using the first argument of the command as
+        the tournament name to start.
+
+        :param args: The user arguments.
+        """
         # Get the tournament name from the provided arguments.
         tournament_name = args[0]
 
@@ -67,6 +97,11 @@ class CommandExecutor:
         season.run(tournament_name)
 
     def scoreboard(self, args):
+        """Displays a scoreboard for a given season or tournament, depending on
+        the arguments the user has supplied.
+
+        :param args: The user arguments.
+        """
         if len(args) == 0:
             print('Invalid syntax. Usage: scoreboard <season> [tournament]')
             return
@@ -97,6 +132,11 @@ class CommandExecutor:
         season.print_scoreboard('women')
 
     def stats(self, args):
+        """Displays circuit statistics or executes a statistics sub-command,
+        depending on how many arguments were supplied by the user.
+
+        :param args: The user arguments.
+        """
         if len(args) == 0:
             self.print_circuit_stats('men')
             self.print_circuit_stats('women')
@@ -111,6 +151,11 @@ class CommandExecutor:
         executor(args[1:])
 
     def stats_score(self, args):
+        """Displays all scores a player has achieved or how many times the
+        specified player has achieved a particular score.
+
+        :param args: The user arguments.
+        """
         player: Player = self.get_player(args)
         if player is None:
             return
@@ -140,6 +185,11 @@ class CommandExecutor:
         print('%s earned a score of %s %d times' % (player.name, args[1], count))
 
     def stats_wins(self, args):
+        """Displays all the wins, losses and percentage success for a given
+        player.
+
+        :param args: The user arguments.
+        """
         player = self.get_player(args)
         if player is None:
             return
@@ -157,6 +207,10 @@ class CommandExecutor:
             player.name, stats.wins, stats.losses, percent_success))
 
     def print_circuit_stats(self, gender: str):
+        """Prints all the statistics for a given track.
+
+        :param gender: The player gender of the track to print statistics for.
+        """
         season: Season = self.circuit.current_season
         if season is None:
             print('No season is currently running')
@@ -177,6 +231,10 @@ class CommandExecutor:
             print('- %s' % player_stats.player.name)
 
     def get_player(self, args):
+        """Fetches a player from command arguments.
+
+        :param args: The user arguments.
+        """
         if len(args) == 0:
             print('Player not specified')
             return None
@@ -192,6 +250,12 @@ class CommandExecutor:
         return player
 
     def get_stats(self, args, stats):
+        """Fetches a players statistics from command arguments.
+
+        :param args: The user arguments.
+        :param stats: All statistics in the track the player belongs.
+        :return: The statistics found for the given player.
+        """
         if len(args) >= 1:
             season: Season = self.circuit.seasons.find(args[0])
             if season is None:
@@ -209,6 +273,13 @@ class CommandExecutor:
 
     @staticmethod
     def get_most_wins(player_stats):
+        """Sorts all player statistics by most wins and returns all the players
+        that achieved the most number of wins, as well as the number of wins
+        they achieved.
+
+        :param player_stats: The player statistics mappings to sort and parse.
+        :return: The amount of wins, and all the top-winning players.
+        """
         sorter = Sorter(lambda a, b: b.wins - a.wins)
 
         for name, stats in player_stats:
@@ -228,6 +299,13 @@ class CommandExecutor:
 
     @staticmethod
     def get_most_losses(player_stats):
+        """Sorts all the player statistics by most losses and returns all the
+        players that achieved the most number of losses, as well as the number
+        of losses in total they achieved.
+
+        :param player_stats: The player statistics mappings to sort and parse.
+        :return: The amount of losses, and all the top-loosing players.
+        """
         sorter = Sorter(lambda a, b: b.losses - a.losses)
 
         for name, stats in player_stats:

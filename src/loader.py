@@ -13,6 +13,12 @@ from tournament import TournamentType, Tournament
 
 
 def prepare_persist(filename):
+    """Prepares a file for persistence, by deleting it and ensuring the
+    directory and parent directories exist.
+
+    :param filename: The file name to prepare for persistence.
+    :return: The prepared filename.
+    """
     # Delete file if already exists.
     if os.path.isfile(filename):
         os.remove(filename)
@@ -26,6 +32,11 @@ def prepare_persist(filename):
 
 
 def load_scores(text):
+    """Loads all scores from formatted text "score1:score2:count".
+
+    :param text: The text to parse.
+    :return: The parsed scores.
+    """
     scores = HashTable()
 
     if len(text) == 0:
@@ -39,6 +50,11 @@ def load_scores(text):
 
 
 def parse_bool(v):
+    """Parses a boolean from text.
+
+    :param v: The text to parse.
+    :return: The boolean value of the text.
+    """
     return v.lower() in ("yes", "true", "t", "1")
 
 
@@ -90,7 +106,13 @@ def handle_duplicates(file_name, previous_lines, line):
     return False
 
 
-def load_round(file_name, context):
+def load_round(file_name, track):
+    """Loads a round from resources.
+
+    :param file_name: The filename to load.
+    :param track: The track of the round to load.
+    :return: All matches loaded from file.
+    """
     matches = List()
     with open(file_name, 'r') as the_file:
         header = True
@@ -109,12 +131,19 @@ def load_round(file_name, context):
             score_a = int(csv[1])
             player_b = csv[2]
             score_b = int(csv[3])
-            match = Match(context, player_a, score_a, player_b, score_b)
+            match = Match(track, player_a, score_a, player_b, score_b)
             matches.append(match)
     return matches
 
 
 def load_track(tournament, gender, track_round):
+    """Loads a track from file.
+
+    :param tournament: The tournament this track is part of.
+    :param gender: The gender of players on this track.
+    :param track_round: The round the track is starting from.
+    :return: The track loaded from file.
+    """
     stats = HashTable()
     remaining = HashTable()
     scoreboard = Tree(lambda a, b: b - a)
@@ -161,6 +190,11 @@ def load_track(tournament, gender, track_round):
 
 
 def load_season_player_scoreboard(season_stats):
+    """Loads and sorts a player scoreboard for a given season.
+
+    :param season_stats: The seasons player statistics.
+    :return: The sorted player statistics for the given season.
+    """
     sorter = Sorter(lambda a, b: b.points - a.points)
     for name, player_stats in season_stats:
         sorter.consume(player_stats)
@@ -168,6 +202,14 @@ def load_season_player_scoreboard(season_stats):
 
 
 def load_season_player_stats(season_name, gender, circuit_players):
+    """Loads all player statistics for a season from file.
+
+    :param season_name: The name of the season to load.
+    :param gender: The gender of the players to load.
+    :param circuit_players: All players of this gender participating in the
+                            circuit.
+    :return: All the mapped player statistics for the season.
+1    """
     stats = HashTable()
     with open('%s/%s/%s.csv' % (OUTPUT, season_name, gender)) as the_file:
         for line in the_file:
@@ -190,6 +232,11 @@ def load_season_player_stats(season_name, gender, circuit_players):
 
 
 def load_tournaments(season: Season):
+    """Loads all tournaments progress for a season from file.
+
+    :param season: The season to load the tournaments progress for.
+    :return: The newly loaded tournaments.
+    """
     tournaments = HashTable()
 
     with open('%s/%s/progress.csv' % (OUTPUT, season.name)) as the_file:
@@ -220,6 +267,11 @@ def load_tournaments(season: Season):
 
 
 def load_circuit_players(gender, players):
+    """Loads all the players for a circuit from file.
+
+    :param gender: The gender of the players to load.
+    :param players: The players mapping collection to load into.
+    """
     player_data_file = '%s/%s.csv' % (RESOURCES, gender)
     player_stats_file = '%s/%s.csv' % (OUTPUT, gender)
 
@@ -257,6 +309,10 @@ def load_circuit_players(gender, players):
 
 
 def load_ranking_points(ranking_points):
+    """Loads all ranking points from user configuration file in resources.
+
+    :param ranking_points: The ranking points collection to load into.
+    """
     with open(RANKING_POINTS_FILE, 'r') as the_file:
         header = True
         previous_lines = HashTable()
@@ -276,6 +332,10 @@ def load_ranking_points(ranking_points):
 
 
 def load_tournament_types(tournaments):
+    """Loads all tournament types from user configuration file in resources.
+
+    :param tournaments: The tournament types collection to load into.
+    """
     with open(TOURNAMENTS_FILE, 'r') as the_file:
         header = True
         first_entry = True
@@ -316,6 +376,11 @@ def load_tournament_types(tournaments):
 
 
 def load_circuit():
+    """Loads a circuit from resources file, then loads all its progress via
+    the previous sessions outputs.
+
+    :return: the newly loaded circuit.
+    """
     circuit = Circuit()
 
     load_tournament_types(circuit.tournament_types)
@@ -353,6 +418,10 @@ def load_circuit():
 
 
 def save_scores(scores):
+    """Puts all scores into a formatted output.
+
+    :return The formatted scores text, to be saved in CSV files.
+    """
     target = ''
     for (our_score, opponent_score), count in scores:
         target += '%d:%d:%d,' % (our_score, opponent_score, count)
@@ -361,6 +430,11 @@ def save_scores(scores):
 
 
 def save_track(tournament: Tournament, track: Track):
+    """Saves all the track information for this session.
+
+    :param tournament: The tournament the saved track belongs to.
+    :param track: The track to save.
+    """
     filename = '%s/%s/%s/%s.csv' % (OUTPUT, tournament.season.name, tournament.type.name, track.name)
     prepare_persist(filename)
     with open(filename, 'a') as the_file:
@@ -372,11 +446,21 @@ def save_track(tournament: Tournament, track: Track):
 
 
 def save_tournament(tournament: Tournament):
+    """Saves progress for a tournament to the output files.
+
+    :param tournament: The tournament to save.
+    """
     save_track(tournament, tournament.men_track)
     save_track(tournament, tournament.women_track)
 
 
 def save_season_player_stats(season: Season, gender, player_stats):
+    """Saves all player statistics for a season.
+
+    :param season: The season the player statistics belong to.
+    :param gender: The gender of the players being saved.
+    :param player_stats: All the player statistics to save.
+    """
     filename = '%s/%s/%s.csv' % (OUTPUT, season.name, gender)
     prepare_persist(filename)
     with open(filename, 'a') as the_file:
@@ -387,6 +471,10 @@ def save_season_player_stats(season: Season, gender, player_stats):
 
 
 def save_season(season: Season):
+    """Saves all season progress to output files.
+
+    :param season: The season to save the progress of.
+    """
     filename = '%s/%s/progress.csv' % (OUTPUT, season.name)
     prepare_persist(filename)
     with open(filename, 'a') as the_file:
@@ -403,6 +491,11 @@ def save_season(season: Season):
 
 
 def save_circuit_player_stats(gender, players):
+    """Saves all player statistics for the entire circuit.
+
+    :param gender: The gender of the players being saved.
+    :param players: The players to save.
+    """
     filename = '%s/%s.csv' % (OUTPUT, gender)
     prepare_persist(filename)
     with open(filename, 'a') as the_file:
@@ -413,6 +506,10 @@ def save_circuit_player_stats(gender, players):
 
 
 def save_circuit(circuit: Circuit):
+    """Saves all circuit progress to the output files.
+
+    :param circuit: The circuit to save.
+    """
     filename = '%s/progress.csv' % OUTPUT
     prepare_persist(filename)
     with open(filename, 'a') as the_file:

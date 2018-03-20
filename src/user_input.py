@@ -110,6 +110,12 @@ def next_gender(message, default=None):
 
 
 def next_input_type(message, default: bool = None):
+    """Fetches the next rounds type of input from the user.
+
+    :param message: The message to display the user.
+    :param default: The default type of input.
+    :return: the user input type, either FILE or TYPED.
+    """
     while True:
         default_text = 'file/TYPED' if default else 'FILE/typed'
         user_input = next_string(message, default_text)
