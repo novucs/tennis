@@ -145,9 +145,14 @@ class Tournament:
         opponent_scores_iterator = iter(stats.opponent_scores)
         previous = track.previous_stats
 
-        for _ in range(0, max(0, track.round - 1)):
+        for i in range(0, max(0, track.round - 1)):
             points = next(ranking_points_iterator)
             loser_score = next(opponent_scores_iterator)
+
+            # Do not add semi-finals score to the winner.
+            if track.round > MAX_ROUNDS and i == (MAX_ROUNDS - 2):
+                continue
+
             multiplier = 1.0
 
             if previous is None or previous.find(stats.player.name).round_achieved >= track.round:
