@@ -2,7 +2,7 @@ import math
 
 MAX_PLAYERS = 32
 
-MAX_ROUNDS = math.log(MAX_PLAYERS, 2)
+MAX_ROUNDS = int(math.log(MAX_PLAYERS, 2))
 
 MEN_WIN_SCORE = 3
 MEN_FORFEIT_SCORE = 2
@@ -83,3 +83,19 @@ def apply_multiplier(gender, winner, loser_score):
             winner.multiplier += 1.5
     elif loser_score == 0:
         winner.multiplier += 2.5
+
+
+def get_multiplier(gender, loser_score):
+    """Gets the multiplier for a gender.
+
+    :param gender: The gender of the multiplier's track.
+    :param loser_score: The score the looser achieved.
+    """
+    if gender == 'men':
+        if loser_score == 0:
+            return 2.5
+        elif loser_score == 1:
+            return 1.5
+    elif loser_score == 0:
+        return 2.5
+    return 1.0

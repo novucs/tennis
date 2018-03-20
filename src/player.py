@@ -1,4 +1,5 @@
 from hash_table import HashTable
+from linked_list import List
 
 
 class CircuitStats:
@@ -84,7 +85,7 @@ class TournamentStats:
     """
 
     def __init__(self, player, season: SeasonStats, round_achieved=1, multiplier=1.0, points=0.0, wins=0, losses=0,
-                 scores=HashTable()):
+                 scores=HashTable(), opponent_scores=List()):
         self.player = player
         self.season = season
         self.round_achieved = round_achieved
@@ -93,6 +94,7 @@ class TournamentStats:
         self.wins = wins
         self.losses = losses
         self.scores = scores.clone()  # <score, count>
+        self.opponent_scores = opponent_scores.clone()
 
     def __repr__(self):
         return '%s: %s' % (self.__class__.__name__, self.player)
@@ -115,6 +117,7 @@ class TournamentStats:
         count = self.scores.find((our_score, opponent_score), 0) + 1
         self.scores.insert((our_score, opponent_score), count)
         self.season.add_score(our_score, opponent_score)
+        self.opponent_scores.append(opponent_score)
 
     def win(self):
         """Updates the players statistics for when they have won the round,

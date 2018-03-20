@@ -21,7 +21,7 @@ class Circuit:
     """
 
     def __init__(self, ordered_seasons=List(), seasons=HashTable(), men=HashTable(), women=HashTable(),
-                 tournament_types=HashTable(), ranking_points=HashTable()):
+                 tournament_types=HashTable(), ranking_points=List()):
         self.running = True
         self.seasons = seasons.clone()
         self.ordered_seasons = ordered_seasons.clone()

@@ -1,5 +1,7 @@
 import os
 
+import math
+
 from circuit import Circuit
 from config import TOURNAMENTS_FILE, RANKING_POINTS_FILE, OUTPUT, RESOURCES, get_winning_score, get_forfeit_score
 from hash_table import HashTable
@@ -159,11 +161,15 @@ def load_track(tournament, gender, track_round):
             wins = int(csv[4])
             losses = int(csv[5])
             scores = load_scores(csv[6])
+            opponent_scores = List()
+
+            for score in csv[7:]:
+                opponent_scores.append(int(score))
 
             # Create the players' tournament stats profile.
             season_stats: SeasonStats = tournament.season.get_stats(gender).find(player_name)
             tournament_stats = TournamentStats(season_stats.player, season_stats, round_achieved, multiplier, points,
-                                               wins, losses, scores)
+                                               wins, losses, scores, opponent_scores)
             tournament_stats.season.tournament_stats.insert(tournament.type.name, tournament_stats)
 
             # Add this profile to the tournament players.
@@ -209,7 +215,7 @@ def load_season_player_stats(season_name, gender, circuit_players):
     :param circuit_players: All players of this gender participating in the
                             circuit.
     :return: All the mapped player statistics for the season.
-1    """
+    """
     stats = HashTable()
     with open('%s/%s/%s.csv' % (OUTPUT, season_name, gender)) as the_file:
         for line in the_file:
@@ -316,6 +322,7 @@ def load_ranking_points(ranking_points):
     with open(RANKING_POINTS_FILE, 'r') as the_file:
         header = True
         previous_lines = HashTable()
+        previous_rank = float('inf')
 
         for line in the_file:
             if handle_duplicates(RANKING_POINTS_FILE, previous_lines, line):
@@ -327,8 +334,12 @@ def load_ranking_points(ranking_points):
 
             values = parse_csv_line(line)
             points = int(values[0])
-            rank = int(values[1])
-            ranking_points.insert(rank, points)
+            rank = math.ceil(math.log(int(values[1]), 2)) + 1
+            # rank = int(values[1])
+            # ranking_points.insert(rank, points)
+            if rank != previous_rank:
+                previous_rank = rank
+                ranking_points.append_front(points)
 
 
 def load_tournament_types(tournaments):
@@ -441,8 +452,12 @@ def save_track(tournament: Tournament, track: Track):
         for name, stats in track.stats:
             stats: TournamentStats = stats
             scores = save_scores(stats.scores)
-            the_file.write('%s,%d,%.2f,%d,%d,%d,"%s"\n' % (name, stats.round_achieved, stats.multiplier, stats.points,
+            the_file.write('%s,%d,%.2f,%d,%d,%d,"%s"' % (name, stats.round_achieved, stats.multiplier, stats.points,
                                                            stats.wins, stats.losses, scores))
+            for score in stats.opponent_scores:
+                the_file.write(',%d' % score)
+
+            the_file.write('\n')
 
 
 def save_tournament(tournament: Tournament):

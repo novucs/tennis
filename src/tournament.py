@@ -1,6 +1,6 @@
 import math
 
-from config import MAX_ROUNDS, apply_multiplier, MAX_PLAYERS
+from config import MAX_ROUNDS, apply_multiplier, MAX_PLAYERS, get_multiplier
 from hash_table import HashTable
 from linked_list import List
 from match import Track, Match
@@ -138,17 +138,24 @@ class Tournament:
         :param stats: The players statistics profile for this tournament.
         :param track: The track the player is in.
         """
-        rank = MAX_PLAYERS - len(track.scoreboard)
-        points = self.season.circuit.ranking_points.find(rank, 0) * self.type.difficulty
+        remaining_count = MAX_PLAYERS - len(track.scoreboard) - 1
+        if remaining_count == 0:
+            rank = 0
+        else:
+            rank = int(math.log(max(remaining_count, 1), 2)) + 1
+        total_points = 0
 
         if track.previous_stats is None:
-            points *= stats.multiplier
-        else:
-            previous_stats: TournamentStats = track.previous_stats.find(stats.player.name)
-            if stats.round_achieved >= previous_stats.round_achieved:
-                points *= stats.multiplier
+            ranking_points_iterator = iter(self.season.circuit.ranking_points)
+            opponent_scores_iterator = iter(stats.opponent_scores)
 
-        stats.add_points(points)
+            for _ in range(0, MAX_ROUNDS - rank):
+                points = next(ranking_points_iterator)
+                loser_score = next(opponent_scores_iterator)
+                multiplier = get_multiplier(track.name, loser_score)
+                total_points += points * multiplier
+
+        stats.add_points(total_points)
         track.scoreboard.insert(stats.points, stats)
 
     def get_track(self, gender):
