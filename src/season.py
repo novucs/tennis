@@ -2,7 +2,6 @@ from config import get_forfeit_score, get_winning_score
 from hash_table import HashTable
 from linked_list import List
 from match import Track
-from pipe_sort import Sorter
 from player import TournamentStats, SeasonStats
 from tournament import Tournament
 
@@ -137,5 +136,5 @@ class Season:
         rank = 1
         scoreboard = self.get_scoreboard(gender)
         for points, stats in scoreboard:
-            print('#%d. %s at %d points' % (rank, stats.player.name, stats.points))
+            print('#%d. %s at %.2f points' % (rank, stats.player.name, stats.points))
             rank += 1

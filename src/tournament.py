@@ -155,6 +155,8 @@ class Tournament:
 
             multiplier = 1.0
 
+            # Do not apply multiplier if player has not achieved at last as
+            # much as the previous season.
             if previous is None or previous.find(stats.player.name).round_achieved >= track.round:
                 multiplier = get_multiplier(track.name, loser_score)
 
