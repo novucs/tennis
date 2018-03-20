@@ -119,8 +119,8 @@ class Tournament:
         if track.round == MAX_ROUNDS:
             print('Tournament %s successfully complete for the %s\'s track' % (self.type.name, track.name))
             print('Winner for the final round: %s' % winner.player.name)
-            self.update_points(winner, track)
             track.round += 1
+            self.update_points(winner, track)
             self.print_scoreboard(track.name)
             return
 
@@ -139,26 +139,27 @@ class Tournament:
         :param stats: The players statistics profile for this tournament.
         :param track: The track the player is in.
         """
-        remaining_count = MAX_PLAYERS - len(track.scoreboard) - 1
-        if remaining_count == 0:
-            rank = 0
-        else:
-            rank = int(math.log(max(remaining_count, 1), 2)) + 1
+
         total_points = 0
+        ranking_points_iterator = iter(self.season.circuit.ranking_points)
+        opponent_scores_iterator = iter(stats.opponent_scores)
+        previous = track.previous_stats
 
-        if track.previous_stats is None:
-            ranking_points_iterator = iter(self.season.circuit.ranking_points)
-            opponent_scores_iterator = iter(stats.opponent_scores)
+        for _ in range(0, max(0, track.round - 1)):
+            points = next(ranking_points_iterator)
+            loser_score = next(opponent_scores_iterator)
+            multiplier = 1.0
 
-            for _ in range(0, MAX_ROUNDS - rank):
-                points = next(ranking_points_iterator)
-                loser_score = next(opponent_scores_iterator)
+            if previous is None or previous.find(stats.player.name).round_achieved >= track.round:
                 multiplier = get_multiplier(track.name, loser_score)
-                total_points += points * multiplier
+
+            total_points += points * multiplier
+
+        total_points *= self.type.difficulty
 
         season_scoreboard: Tree = self.season.get_scoreboard(track.name)
         season_scoreboard.delete(stats.season.points, stats.season)
-        stats.add_points(total_points * self.type.difficulty)
+        stats.add_points(total_points)
         season_scoreboard.insert(stats.season.points, stats.season)
         track.scoreboard.append_front(stats)
 
@@ -186,5 +187,5 @@ class Tournament:
 
         for stats in track.scoreboard:
             prize = self.type.prizes.find(rank, '0')
-            print('#%d. %s at %d points wins £%s' % (rank, stats.player.name, stats.points, prize))
+            print('#%d. %s at %.2f points wins £%s' % (rank, stats.player.name, stats.points, prize))
             rank += 1
