@@ -125,6 +125,9 @@ profiles. Hash tables provide a speedy average lookup time of `O(1)` for this
 operation, so these will be used as a form of compatibility when interfacing
 with the data provider.
 
+All the player scoring system uses hashing, which means any attempt to find
+what score a player has uses an average lookup time of `O(1)`.
+
 #### Hash table
 - Space complexity: `O(n)`
 - Best case search, insertion and deletion: `O(1)`

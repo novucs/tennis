@@ -461,62 +461,85 @@ while ib < run_b.size:
 return merged
 ```
 
-## Streamed Solution
-
-```
-ask user if we should load from previous tournament
-    if loading from file
-        load circuit and player progress from file
-    otherwise
-        load new circuit info via user prompt
-
-load
-- tournaments list
-- score tree (current tournament score to player)
-- rank tree (circuit ranking points to player)
-- ranking points hash table
-
-for each tournament (start from previous save, if loaded)
-    for each score supplied via the stream
-        modify the players tree, given their new score
-    for each player in score tree
-        get prize via score
-        print player to prize info
-    for each rank and points in ranking points
-        for each player at tournament rank (score tree is order statistic)
-            update player points in rank tree
-        update points each player at the given rank has
-
-on program exit / keyboard interrupt
-    for each rank and player in ranked players
-        print player and rank
-    save circuit and player progress
-```
-
-## Static Solution
+## Overview
 
 ```
 load
-- tournaments list
+- saved season stats
+- saved tournament stats
+- tournament types
 - players by name hash tables
 - ranking points hash table
 
 if previous session saved
     load circuit and player progress
 
-for each tournament in tournaments
-    ask user for round files
-    for each round in round files
-        load player scores for round
-    sort players by score to ordered players
-    for each player in ordered players
-        get prize for tournament position
-        print player and prize
-        get ranking point count for position
-        update players ranking points
+loop forever:
+    request user command
+    execute command
 
-on program exit / keyboard interrupt
-    sort players by ranking points
-    print players
+on tournament start command:
+    if current running season is complete or non-existant:
+        ask user for new season name
+        update current running season
+    loop each round until user requests to stop:
+        ask user for the next track (gender) playing
+        ask user for input method
+        if input method is file:
+            ask user for round files
+            load player scores for round
+        else input method is manual:
+            calculate number of matches for this round
+            update the track with the expected number of matches
+        loop through each match:
+            run match:
+                loop until players are filled and valid:
+                    request user input for players
+                    validate players can play eachother based off seedings
+                loop until scores are filled and valid:
+                    request user input for scores
+                    validate scores (no draws, 1 winner at max track score)
+                adjust losers position in the scoreboard
+            if match is complete:
+                adjust winners position in the scoreboard
+                print tournament scoreboard
+            else:
+                print players who won this round
+        ask user if they would like to stop entering scores
+    sort season scoreboard
+    if season complete:
+        print season scoreboard
+
+on help command:
+    print help message
+
+on scoreboard command:
+    if requested specific track:
+        print track scoreboard
+    if requested tournament:
+        print tournament scoreboard
+    if requested season:
+        print season scoreboard
+
+on circuit stats command:
+    sort and find players with most winners
+    print players with most wins and their win counts
+    sort and find players with most losses
+    print players with most losses and their loss counts
+
+on score stats command:
+    if no specific tournament or season defined:
+        print table with all scores player has and their tallys
+        return
+    parse scores to find
+    parse stats type to use (either tournament or seasonal)
+    print number of times player recieved the given score in the selected stats
+
+on wins or losses command:
+    parse player and their stats (tournament or season) to use
+    calculate percentage of wins for the stats
+    print the players wins, losses and success percentage
+
+on program exit command:
     save circuit and player progress
 ```
