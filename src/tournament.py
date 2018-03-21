@@ -230,20 +230,18 @@ class Tournament:
             if track.round > MAX_ROUNDS and i == (MAX_ROUNDS - 2):
                 continue
 
-            multiplier = 1.0
-
-            # Do not apply multiplier if player has not achieved at last as
-            # much as the previous season.
-            if previous is None or previous.find(stats.player.name).round_achieved >= track.round:
-                multiplier = get_multiplier(track.name, loser_score)
-
             # Do not apply multiplier for semi-finals scores.
             if track.round == MAX_ROUNDS and i == (MAX_ROUNDS - 2):
                 multiplier = 1.0
+            else:
+                multiplier = get_multiplier(track.name, loser_score)
 
             total_points += points * multiplier
 
-        total_points *= self.type.difficulty
+        # Do not apply difficulty factor if player has not achieved at last as
+        # much as the previous season.
+        if previous is None or previous.find(stats.player.name).round_achieved >= track.round:
+            total_points *= self.type.difficulty
 
         season_scoreboard: Tree = self.season.get_scoreboard(track.name)
         season_scoreboard.delete(stats.season.points, stats.season)
