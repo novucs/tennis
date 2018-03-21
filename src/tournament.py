@@ -1,6 +1,6 @@
 import math
 
-from config import MAX_ROUNDS, apply_multiplier, MAX_PLAYERS, get_multiplier
+from config import MAX_ROUNDS, apply_multiplier, get_multiplier
 from hash_table import HashTable
 from linked_list import List
 from match import Track, Match

@@ -462,7 +462,7 @@ def save_track(tournament: Tournament, track: Track):
             stats: TournamentStats = stats
             scores = save_scores(stats.scores)
             the_file.write('%s,%d,%.2f,%d,%d,%d,"%s"' % (name, stats.round_achieved, stats.multiplier, stats.points,
-                                                           stats.wins, stats.losses, scores))
+                                                         stats.wins, stats.losses, scores))
             for score in stats.opponent_scores:
                 the_file.write(',%d' % score)
 

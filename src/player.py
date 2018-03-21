@@ -144,7 +144,7 @@ class Player:
 
     Attributes:
         name: The name of the player.
-        stats: The statistics the player has achived throughout the circuit
+        stats: The statistics the player has achieved throughout the circuit
                they are in.
     """
 

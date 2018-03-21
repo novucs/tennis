@@ -448,8 +448,7 @@ class Tree:
             #              2. Move to step 1 for the parent.
             #          Otherwise:
             #              1. Move to step 5.
-            if color_of(side_towards(sibling)) == BLACK and \
-                            color_of(side_against(sibling)) == BLACK:
+            if color_of(side_towards(sibling)) == BLACK and color_of(side_against(sibling)) == BLACK:
                 set_color(sibling, RED)
                 node = parent_of(node)
                 continue
