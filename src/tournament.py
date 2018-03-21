@@ -160,6 +160,10 @@ class Tournament:
             if previous is None or previous.find(stats.player.name).round_achieved >= track.round:
                 multiplier = get_multiplier(track.name, loser_score)
 
+            # Do not apply multiplier for semi-finals scores.
+            if track.round == MAX_ROUNDS and i == (MAX_ROUNDS - 2):
+                multiplier = 1.0
+
             total_points += points * multiplier
 
         total_points *= self.type.difficulty
