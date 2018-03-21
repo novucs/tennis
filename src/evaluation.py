@@ -1,4 +1,6 @@
-import cProfile, pstats, io
+import cProfile
+import io
+import pstats
 import random
 
 from hash_table import HashTable
