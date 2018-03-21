@@ -1,6 +1,6 @@
 import math
 
-from config import MAX_ROUNDS, apply_multiplier, get_multiplier
+from config import MAX_ROUNDS, apply_multiplier, get_multiplier, MAX_PLAYERS
 from hash_table import HashTable
 from linked_list import List
 from match import Track, Match
@@ -76,26 +76,22 @@ class Tournament:
             return
 
         print('Playing the %s\'s track' % track.name)
-        input_type = next_input_type('How should data be entered?')
         winners = HashTable()
         winner = None
         matches = List()
-
-        if input_type == FILE:
-            # Get the file to load the round data from.
-            default_round_file = '../resources/%s/%s/%s/round_%d.csv' % \
-                                 (self.season.name, self.type.name.lower(), track.name, track.round)
-            round_file = next_string('Enter file for round %d' % track.round, default_round_file)
-            from loader import load_round
-            matches = load_round(round_file, track)
-        else:
-            match_count = int(math.pow(2, MAX_ROUNDS - track.round))
-
-            for i in range(0, match_count):
-                match = Match(track)
-                matches.append(match)
-
         track.update_previous_winners()
+
+        if self.previous is not None and next_bool('Should we seed the round for you?', True):
+            if track.round == 1:
+                self.seed_automatic_first(track, matches)
+            else:
+                self.seed_automatic_next(track, matches)
+        else:
+            input_type = next_input_type('How should data be entered?')
+            if input_type == FILE:
+                matches = self.seed_file(track)
+            else:
+                self.seed_manual(track, matches)
 
         # Run each match.
         for match in matches:
@@ -132,6 +128,88 @@ class Tournament:
         track.remaining = winners
         track.round += 1
 
+    @staticmethod
+    def seed_manual(track, matches):
+        """Creates a round of empty matches, for the user to manually fill in.
+
+        :param track: The track that should be played for this round.
+        :param matches: The matches collection to load in.
+        """
+        match_count = int(math.pow(2, MAX_ROUNDS - track.round))
+        for i in range(0, match_count):
+            match = Match(track)
+            matches.append(match)
+
+    def seed_file(self, track):
+        """Creates a round of matches, filled in by the contents of a file.
+
+        :param track: The track that should be played for this round.
+        :return: The matches loaded from file.
+        """
+        # Get the file to load the round data from.
+        default_round_file = '../resources/%s/%s/%s/round_%d.csv' % \
+                             (self.season.name, self.type.name.lower(), track.name, track.round)
+        round_file = next_string('Enter file for round %d' % track.round, default_round_file)
+        from loader import load_round
+        matches = load_round(round_file, track)
+        return matches
+
+    @staticmethod
+    def seed_automatic_first(track, matches):
+        """Automatically pairs the winners against the losers from the previous
+        seasons scoreboard. Used for seeding the first round of a tournament in
+        seasons beyond the first.
+
+        :param track: The track that should be played for this round.
+        :param matches: The matches collection to load in.
+        """
+        front_iterator = iter(track.previous_season_scoreboard)
+        back_iterator = iter(track.previous_season_scoreboard)
+        for i in range(0, int(MAX_PLAYERS / 2)):
+            next(back_iterator)
+        for i in range(0, int(MAX_PLAYERS / 2)):
+            player_a = next(front_iterator)[1].player.name
+            player_b = next(back_iterator)[1].player.name
+            match = Match(track, player_a=player_a, player_b=player_b)
+            matches.append(match)
+
+    @staticmethod
+    def seed_automatic_next(track, matches):
+        """Automatically pairs the winners against the losers of the same
+        tournament in the previous season. Used for seeding non-first rounds in
+        seasons beyond the first.
+
+        :param track: The track that should be played for this round.
+        :param matches: The matches collection to load in.
+        """
+        winners_count = len(track.previous_winners)
+        losers_count = len(track.previous_losers)
+        losers_iterator = iter(track.previous_losers)
+        winners_iterator = iter(track.previous_winners)
+
+        # Seed all winners against losers for previous tournament.
+        for i in range(0, min(winners_count, losers_count)):
+            player_a = next(winners_iterator)[0]
+            player_b = next(losers_iterator)[0]
+            match = Match(track, player_a=player_a, player_b=player_b)
+            matches.append(match)
+
+        # If there are remaining winners, seed them against each other.
+        if winners_count > losers_count:
+            for i in range(0, int(winners_count - len(matches) / 2)):
+                player_a = next(winners_iterator)[0]
+                player_b = next(winners_iterator)[0]
+                match = Match(track, player_a=player_a, player_b=player_b)
+                matches.append(match)
+
+        # If there are remaining losers, seed them against each other.
+        elif winners_count < losers_count:
+            for i in range(0, int((losers_count - len(matches)) / 2)):
+                player_a = next(losers_iterator)[0]
+                player_b = next(losers_iterator)[0]
+                match = Match(track, player_a=player_a, player_b=player_b)
+                matches.append(match)
+
     def update_points(self, stats: TournamentStats, track: Track):
         """Updates the points of a players stats once they've either lost the
         tournament, or the tournament has been complete.
@@ -139,7 +217,6 @@ class Tournament:
         :param stats: The players statistics profile for this tournament.
         :param track: The track the player is in.
         """
-
         total_points = 0
         ranking_points_iterator = iter(self.season.circuit.ranking_points)
         opponent_scores_iterator = iter(stats.opponent_scores)

@@ -48,14 +48,26 @@ class Track:
                 self.high_ranked.insert(stats.player.name, True)
 
         self.previous_winners = HashTable()
+        self.previous_losers = HashTable()
 
     def update_previous_winners(self):
-        """Updates the track with the previous winners for the current round.
+        """Updates the track with the previous winners and losers for the
+        current round.
         """
-        if self.previous_stats is not None:
-            for name, stats in self.previous_stats:
-                if stats.round_achieved > self.round and self.remaining.find(name) is not None:
-                    self.previous_winners.insert(name, stats)
+        if self.previous_stats is None:
+            return
+
+        self.previous_losers = HashTable()
+        self.previous_winners = HashTable()
+
+        for name, stats in self.previous_stats:
+            if self.remaining.find(name) is None:
+                continue
+
+            if stats.round_achieved > self.round:
+                self.previous_winners.insert(name, stats)
+            else:
+                self.previous_losers.insert(name, stats)
 
 
 class Match:
@@ -86,7 +98,19 @@ class Match:
         :return: Winners stats and their score, then the looser stats and
                  their score.
         """
-        if self.player_name_a is not None:
+        if self.player_name_a is not None and self.score_a is None:
+            # Validate players, both must still be able to play this round.
+            self.player_name_a = self.ensure_player_exists(self.player_name_a, player_stats)
+            # Prevent players playing any more matches this round, and load their
+            # relevant tournament stats for returning later.
+            player_stats_a = player_stats.delete(self.player_name_a)
+            self.player_name_b = self.ensure_player_exists(self.player_name_b, player_stats)
+            self.ensure_players_compatible(player_stats)
+            player_stats_b = player_stats.delete(self.player_name_b)
+            print('%s vs %s' % (self.player_name_a, self.player_name_b))
+            self.score_a = next_int("Enter %s's score" % self.player_name_a)
+            self.score_b = next_int("Enter %s's score" % self.player_name_b)
+        elif self.player_name_a is not None:
             # Validate players, both must still be able to play this round.
             self.player_name_a = self.ensure_player_exists(self.player_name_a, player_stats)
             # Prevent players playing any more matches this round, and load their
