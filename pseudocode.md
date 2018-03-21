@@ -506,7 +506,6 @@ on tournament start command:
             else:
                 print players who won this round
         ask user if they would like to stop entering scores
-    sort season scoreboard
     if season complete:
         print season scoreboard
 

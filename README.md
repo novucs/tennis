@@ -1,8 +1,8 @@
 # DADSA Assignment 2
 **A tennis player ranking system.**
 
-Takes scores for a group of tennis tournaments dubbed circuits, and produces
-useful stats, efficiently.
+Takes scores for a group of tennis tournaments, dubbed "circuits", and
+efficiently produces useful stats.
 
 ## Startup
 Requires Python 3. This project was tested using Python 3.6.3.
@@ -79,25 +79,34 @@ stats wins <player> [season] [tournament]
 stats losses <player> [season] [tournament]
 ```
 
-## Performance Justifications
+## Performance justifications
 
-### Streamed Ranking
+### Tournament ranking
 Each time a match is executed, the program will automatically keep the
-tournament ranking updated. I have chosen to retain this functionality as in
-the likely event later specifications require statistics throughout the
-tournament progress. Players that have lost the tournament may have their
+player ranking updated. Players that have lost the tournament may have their
 ranking points immediately calculated, thus gives us the ability of knowing
-their tournament position before the tournament being complete. The backing
-order-statistic tree that supports this feature also provides `O(log n)` user
-ranking. Fast user ranking is another desirable feature for statistics based
-programs such as this, and is likely to be required in future updates.
+their tournament position before the tournament being complete. Tournament
+ranking simply ranks players by appending them to the front of a doubly linked
+list upon loss, which gives `O(1)` time.
 
-A well-programmed sort algorithm will have an average sort time complexity of
-`O(n log n)`. However self balancing trees tend to have modification time
-complexities of `O(log n)`. Since we are optimising for sorting on individual
-element modifications, it would be very expensive to reorganize and verify the
-entire data structure. A self balancing tree would then be the most optimal
-route to take when streaming data.
+#### Doubly linked list
+- Space complexity: `O(n)`
+- Appending front or back (pushing): `O(1)`
+- Deleting front or back (popping): `O(1)`
+- Insertion at index: `O(n)`
+- Deletion at index: `O(n)`
+- Search (sequential): `O(n)`
+
+### Season ranking
+Season ranking is a little different, due to the collection requiring
+modifications even after players have been added to it. Season ranking requires
+the ranking to be maintained as each match passes.  A well-programmed sort
+algorithm will have an average sort time complexity of `O(n log n)`. However
+self balancing trees tend to have modification time complexities of `O(log n)`.
+Since we are optimising for sorting on individual element modifications, it
+would be very expensive to reorganize and verify the entire data structure.
+Therefore I chose to use an variant of a self balancing tree called an order
+statistic red-black tree.
 
 #### Red-black order statistic tree
 - Space complexity: `O(n)`
@@ -135,10 +144,9 @@ what score a player has uses an average lookup time of `O(1)`.
 - Worst case search, insertion and deletion: `O(n)`
 
 ### Sorting
-Season scoreboards are calculated quite differently. This program provides the
-season updates on batch (i.e. after a round ends), therefore a more appropriate
-algorithm for maintaining an ordered collection should be chosen. Some
-operations in our tournament solution have a worst case time complexity of
+When loading data all at once into a list, such as the tournament ranking from
+file, it is more efficient to use a sorting algorithm over sorting by trees.
+Some operations in the previous solution have a worst case time complexity of
 `O(n)`, therefore processing the entire data set will give us an overall worst
 case time complexity of `O(n^2)`. As stated before, there are sorting
 algorithms that provide a worst case scenario of `O(n log n)`. Sorting is also
