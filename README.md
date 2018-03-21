@@ -20,6 +20,10 @@ To reset the previous session data:
 
 Either delete output folder, or double click `CLEAN_PREVIOUS_SESSIONS.bat`
 
+To run the algorithm performance evaluations:
+
+Double click `EVALUATION.bat`
+
 ### Linux
 First, ensure you are in the source directory:
 
@@ -79,8 +83,7 @@ stats wins <player> [season] [tournament]
 stats losses <player> [season] [tournament]
 ```
 
-## Performance justifications
-
+## Justifications
 ### Tournament ranking
 Each time a match is executed, the program will automatically keep the
 player ranking updated. Players that have lost the tournament may have their
@@ -196,6 +199,14 @@ runs. We know all the data is sorted once there is only a single run remaining.
   - Best: `O(n)`
   - Average: `O(n log n)`
   - Worst: `O(n log n)`
+  
+### Code size
+All the algorithms defined above require a reasonably large number of lines of
+code in order to be implemented in a sane manor. The entire project has no
+excessive portions of duplicated code, nor does it violate PEP-8 (with a row
+length of 120). It is possible to shrink this project down to less lines of
+code, but that will require either deleting comments, switching out for lower
+performing algorithms, or generally decreasing the code quality.
 
 ## Other notes
 - The library numpy was used in this project, not for ease of use but to
