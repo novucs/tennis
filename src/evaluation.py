@@ -2,6 +2,7 @@ import cProfile
 import io
 import pstats
 import random
+import sys
 
 from hash_table import HashTable
 from linked_list import List
@@ -33,11 +34,17 @@ def profile(func):
     return wrapper
 
 
+def prompt_next():
+    print("Press [Enter] to continue to the next evaluation...")
+    sys.stdin.readline()
+    sys.stderr.write("\x1b[2J\x1b[H")
+    sys.stdout.flush()
+
+
 @profile
 def bubble_sort(array):
-    half = int(len(array) / 2)
-    for i in range(0, half):
-        for j in range(0, half):
+    for i in range(0, len(array)):
+        for j in range(0, len(array)):
             if array[i] > array[j]:
                 array[i], array[j] = array[j], array[i]
 
@@ -63,6 +70,7 @@ def bubble_vs_pipe():
         sorter.consume(value)
     bubble_sort(array)
     pipe_sort(sorter)
+    prompt_next()
 
 
 @profile
@@ -97,6 +105,7 @@ def pipe_vs_tree():
     value = random.randint(0, 5000)
     pipe_single(array, value)
     tree_single(tree, value)
+    prompt_next()
 
 
 @profile
@@ -128,6 +137,7 @@ def tree_vs_list():
     array.sort()
     tree_multiple(array)
     list_multiple(array)
+    prompt_next()
 
 
 @profile
@@ -168,6 +178,7 @@ def list_vs_tree_vs_hash():
     list_search(linked_list)
     tree_search(tree)
     hash_search(hash_table)
+    prompt_next()
 
 
 def main():
@@ -175,6 +186,7 @@ def main():
     pipe_vs_tree()
     tree_vs_list()
     list_vs_tree_vs_hash()
+    print('All evaluations are complete.')
 
 
 if __name__ == '__main__':
