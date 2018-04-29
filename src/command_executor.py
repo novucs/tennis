@@ -103,7 +103,8 @@ class CommandExecutor:
         :param args: The user arguments.
         """
         if len(args) == 0:
-            print('Invalid syntax. Usage: scoreboard <season> [tournament]')
+            self.circuit.print_scoreboard('men')
+            self.circuit.print_scoreboard('women')
             return
 
         season: Season = self.circuit.seasons.find(args[0])

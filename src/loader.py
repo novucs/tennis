@@ -314,12 +314,14 @@ def load_circuit_players(gender, players):
             wins = int(csv[1])
             losses = int(csv[2])
             scores = load_scores(csv[3])
+            points = int(csv[4])
 
             # Create the players circuit stats profile.
             player = players.find(name)
             player.stats.wins = wins
             player.stats.losses = losses
             player.stats.scores = scores
+            player.stats.points = points
 
 
 def load_ranking_points(ranking_points):
@@ -395,6 +397,13 @@ def load_tournament_types(tournaments):
     tournaments.insert(current_name, tournament)
 
 
+def load_circuit_player_scoreboard(players):
+    scoreboard = Tree(lambda a, b: b - a)
+    for name, player in players:
+        scoreboard.insert(player.stats.points, player.stats)
+    return scoreboard
+
+
 def load_circuit():
     """Loads a circuit from resources file, then loads all its progress via
     the previous sessions outputs.
@@ -407,6 +416,8 @@ def load_circuit():
     load_ranking_points(circuit.ranking_points)
     load_circuit_players('men', circuit.men)
     load_circuit_players('women', circuit.women)
+    circuit.men_scoreboard = load_circuit_player_scoreboard(circuit.men)
+    circuit.women_scoreboard = load_circuit_player_scoreboard(circuit.women)
 
     circuit_progress_file = '%s/progress.csv' % OUTPUT
 
@@ -526,7 +537,7 @@ def save_circuit_player_stats(gender, players):
         for name, player in players:
             stats: CircuitStats = player.stats
             scores = save_scores(stats.scores)
-            the_file.write('%s,%d,%d,"%s"\n' % (name, stats.wins, stats.losses, scores))
+            the_file.write('%s,%d,%d,"%s",%d\n' % (name, stats.wins, stats.losses, scores, stats.points))
 
 
 def save_circuit(circuit: Circuit):

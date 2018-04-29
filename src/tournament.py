@@ -243,9 +243,12 @@ class Tournament:
         if previous is None or previous.find(stats.player.name).round_achieved >= track.round:
             total_points *= self.type.difficulty
 
+        circuit_scoreboard: Tree = self.season.circuit.get_scoreboard(track.name)
+        circuit_scoreboard.delete(stats.season.circuit.points, stats.season.circuit)
         season_scoreboard: Tree = self.season.get_scoreboard(track.name)
         season_scoreboard.delete(stats.season.points, stats.season)
         stats.add_points(total_points)
+        circuit_scoreboard.insert(stats.season.circuit.points, stats.season.circuit)
         season_scoreboard.insert(stats.season.points, stats.season)
         track.scoreboard.append_front(stats)
 

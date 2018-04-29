@@ -22,7 +22,7 @@ class Circuit:
     """
 
     def __init__(self, ordered_seasons=List(), seasons=HashTable(), men=HashTable(), women=HashTable(),
-                 tournament_types=HashTable(), ranking_points=List()):
+                 tournament_types=HashTable(), ranking_points=List(), men_scoreboard=Tree(), women_scoreboard=Tree()):
         self.running = True
         self.seasons = seasons.clone()
         self.ordered_seasons = ordered_seasons.clone()
@@ -31,6 +31,8 @@ class Circuit:
         self.women = women.clone()
         self.tournament_types = tournament_types.clone()
         self.ranking_points = ranking_points.clone()
+        self.men_scoreboard = men_scoreboard
+        self.women_scoreboard = women_scoreboard
 
     def next_incomplete_season(self):
         """Fetches the next incomplete season for this circuit. Asks the user
@@ -104,3 +106,14 @@ class Circuit:
         :return: The players.
         """
         return self.men if gender == 'men' else self.women
+
+    def get_scoreboard(self, gender):
+        return self.men_scoreboard if gender == 'men' else self.women_scoreboard
+
+    def print_scoreboard(self, gender):
+        print('Circuit scoreboard for track %s' % gender)
+        rank = 1
+        scoreboard = self.get_scoreboard(gender)
+        for points, stats in scoreboard:
+            print('#%d. %s at %.2f points' % (rank, stats.player.name, stats.points))
+            rank += 1

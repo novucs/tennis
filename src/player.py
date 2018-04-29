@@ -13,10 +13,11 @@ class CircuitStats:
         season_stats: All statistics for each season the player has.
     """
 
-    def __init__(self, player, wins=0, losses=0, scores=HashTable(), season_stats=HashTable()):
+    def __init__(self, player, wins=0, losses=0, points=0, scores=HashTable(), season_stats=HashTable()):
         self.player = player
         self.wins = wins
         self.losses = losses
+        self.points = points
         self.scores = scores.clone()  # <score, count>
         self.season_stats = season_stats.clone()  # <season name, season stats>
 
@@ -106,6 +107,7 @@ class TournamentStats:
         """
         self.points += points
         self.season.points += points
+        self.season.circuit.points += points
 
     def add_score(self, our_score, opponent_score):
         """Adds a score a player has achieved at the end of a match.
